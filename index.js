@@ -28,6 +28,7 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 
 const config = require('./config');
+const ownerNumber = config.OWNER_NUMBER;
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
   getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
