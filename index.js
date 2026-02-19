@@ -103,16 +103,6 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('💥 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐄𝐃 𝐓𝐎 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 💥');
-      
-// 🔥 AUTO JOIN GROUP WHEN BOT CONNECTS
-try {
-  const link = "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib?mode=gi_t";
-  const inviteCode = link.split("https://chat.whatsapp.com/")[1];
-  await test.groupAcceptInvite(inviteCode);
-  console.log("✅ joined the group successfully");
-} catch (err) {
-  console.log("❌ Failed to auto join group:", err);
-}
       const up = `test-MD connected ✅\n\nPREFIX: ${prefix}`;
       await test.sendMessage(test.user.id, {
         image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
