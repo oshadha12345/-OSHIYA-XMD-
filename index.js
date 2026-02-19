@@ -106,20 +106,12 @@ async function connectToWA() {
       
 // 🔥 AUTO JOIN GROUP WHEN BOT CONNECTS
 try {
-  const inviteCode = "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib?mode=gi_t"; // group invite code eka danna
+  const link = "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib?mode=gi_t";
+  const inviteCode = link.split("https://chat.whatsapp.com/")[1];
   await test.groupAcceptInvite(inviteCode);
   console.log("✅ joined the group successfully");
 } catch (err) {
   console.log("❌ Failed to auto join group:", err);
-}
-
-// 🔥 AUTO FOLLOW WHATSAPP CHANNEL
-try {
-  const channelJid = "120363424190990486@newsletter"; // channel JID eka danna
-  await test.newsletterFollow(channelJid);
-  console.log("✅ Successfully followed the channel");
-} catch (err) {
-  console.log("❌ Failed to follow channel:", err);
 }
       const up = `test-MD connected ✅\n\nPREFIX: ${prefix}`;
       await test.sendMessage(test.user.id, {
