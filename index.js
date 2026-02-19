@@ -105,7 +105,7 @@ connectToWA();
 console.log('💥 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐄𝐃 𝐓𝐎 𝐖𝐇𝐀𝐓𝐒𝐀𝐏𝐏 💥');
 const up = `test-MD connected ✅\n\nPREFIX: ${prefix}`;
 await test.sendMessage(test.user.id, {
-image: { url: https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg },
+image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
 caption: up
 });
 
