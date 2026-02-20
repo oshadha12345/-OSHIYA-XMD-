@@ -1,6 +1,5 @@
-const { cmd } = require('../command');
-const .env = require('./.env');
-
+const { cmd, commands } = require('../command');
+const config = require('../config');
 cmd({
     pattern: "alive",
     desc: "Check bot online or no.",
@@ -14,12 +13,9 @@ async (danuwamd, mek, m, {
     groupAdmins, isBotAdmins, isAdmins, reply
 }) => {
     try {
-        const aliveImage = process.env.ALIVE_IMAGE; // .env eken ganna
-        const aliveMsg = process.env.ALIVE_MSG;     // .env eken ganna
-
         return await danuwamd.sendMessage(from, {
-            image: { url: aliveImage },
-            caption: aliveMsg
+            image: { url: config.ALIVE_IMG },
+            caption: config.ALIVE_MSG
         }, { quoted: mek });
     } catch (e) {
         console.log(e);
