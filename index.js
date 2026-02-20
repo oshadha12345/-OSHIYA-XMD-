@@ -49,7 +49,7 @@ async function ensureSessionFile() {
       process.exit(1);
     }
 
-    console.log("🔄 creds.json not found. Downloading session from MEGA...");
+    console.log("𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📂");
 
     let sessdata = config.SESSION_ID.trim().replace(/^ᴏꜱʜɪʏᴀ~/, '');
     const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
@@ -62,7 +62,7 @@ async function ensureSessionFile() {
 
       fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });
       fs.writeFileSync(credsPath, data);
-      console.log("✅ Session downloaded and saved. Restarting bot...");
+      console.log("✅ 𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐈𝐃 𝐒𝐀𝐕𝐄 ✅");
       setTimeout(() => {
         connectToWA();
       }, 2000);
@@ -103,7 +103,7 @@ async function connectToWA() {
         connectToWA();
       }
     } else if (connection === 'open') {
-      console.log('✅ test-MD connected to WhatsApp');
+      console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
 // ✅ Auto Change About (Bio)
 try {
@@ -341,7 +341,7 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
 ensureSessionFile();
 
 app.get("/", (req, res) => {
-  res.send("Hey, test-MD started✅");
+  res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
 });
 
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
