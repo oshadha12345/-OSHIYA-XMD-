@@ -116,17 +116,16 @@ cmd({
     const cmdsInCategory = commandMap[selectedCategory];
 
     let cmdText = `
-╭━━━〔 ✦ ${selectedCategory} ✦ 〕━━━╮
+╭━〔${selectedCategory}〕━╮
 `;
 
     cmdsInCategory.forEach((c, i) => {
-      const patterns = [c.pattern, ...(c.alias || [])]
-        .filter(Boolean)
-        .map(p => `「 ${prefix}${p} 」`);
+      const patterns = [c.pattern]; // alias එක ignore කරලා
       cmdText += `
 ╭─❍ ${i + 1}
 │ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 : ${patterns.join(" | ")}
-│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
+│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No
+description"}
 ╰───────────────❍
 `;
     });
