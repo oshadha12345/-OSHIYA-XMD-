@@ -1,5 +1,5 @@
 const { cmd } = require('../command');
-require('dotenv').config(); // .env read karanna
+const .env = require('./.env');
 
 cmd({
     pattern: "alive",
