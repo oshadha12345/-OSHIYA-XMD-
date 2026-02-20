@@ -11,10 +11,10 @@ const ownerName = "OSHADHA";
 const prefix = ".";
 // =========================
 
-// Fancy italic bold converter
+// Fancy Bold Converter
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙";
+  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   return text.split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
@@ -23,13 +23,13 @@ function toFancy(text) {
 
 cmd({
   pattern: "menu",
-  react: "📂",
+  react: "🌸",
   desc: "Show command categories",
   category: "main",
   filename: __filename
 }, async (test, m, msg, { from, sender, pushname }) => {
 
-  await test.sendMessage(from, { react: { text: "📂", key: m.key } });
+  await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
 
   const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
   const time = moment().tz("Asia/Colombo").format("HH:mm:ss");
@@ -45,24 +45,24 @@ cmd({
 
   const categories = Object.keys(commandMap);
 
-  let menuText = `╭━━━〔 ${botName} 〕━━━╮\n`;
-  menuText += `┃ 👑 Owner : ${ownerName}\n`;
-  menuText += `┃ 👤 User  : ${pushname}\n`;
-  menuText += `┃ 📅 Date  : ${date}\n`;
-  menuText += `┃ ⏰ Time  : ${time}\n`;
-  menuText += `┃ ⚙ Prefix : ${prefix}\n`;
-  menuText += `╰━━━━━━━━━━━━━━━━━━╯\n\n`;
+  let menuText = `
+      ⚠𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃⚠
+👑 `Owner`  : ${ownerName}
+👤 `User`   : ${pushname}
+📅 `Date`   : ${date}
+⏰ `Time`   : ${time}
+⚙ `Prefix`  : ${prefix}
 
-  menuText += `➘ 𝘾𝙊𝙈𝙈𝘼𝙉𝘿𝙎 ➘\n\n`;
-  menuText += `┌━━━━━━━━━━━━━━━━━━┑\n`;
+╭━━━〔 ✧ `COMMAND CATEGORIES` ✧ 〕━━━╮
+`;
 
   categories.forEach((cat, i) => {
     const styled = toFancy(cat);
-    menuText += `${i + 1} ❱ ${styled} (${commandMap[cat].length})\n`;
+    menuText += `│ ${i + 1}. ${styled} 〔 ${commandMap[cat].length} 〕\n`;
   });
 
-  menuText += `┕━━━━━━━━━━━━━━━━━━┙\n`;
-  menuText += `*Reply with category number* ✨`;
+  menuText += `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n`;
+  menuText += `\n🌸 > *Reply with category number*`;
 
   await test.sendMessage(from, {
     image: { url: headerImage },
@@ -90,18 +90,28 @@ cmd({
   const selectedCategory = categories[index];
   const cmdsInCategory = commandMap[selectedCategory];
 
-  let cmdText = `╭━━━〔 ${selectedCategory} 〕━━━╮\n\n`;
+  let cmdText = `
+╭━━━〔 ✦ ${selectedCategory} ✦ 〕━━━╮
+`;
 
   cmdsInCategory.forEach((c, i) => {
     const patterns = [c.pattern, ...(c.alias || [])]
       .filter(Boolean)
-      .map(p => `${prefix}${p}`);
-    cmdText += `❯ ${patterns.join(", ")}\n`;
-    cmdText += `   ➥ ${c.desc || "No description"}\n\n`;
+      .map(p => `「 ${prefix}${p} 」`);
+
+    cmdText += `
+╭─❍ ${i + 1}
+│ ✧ `Command` : ${patterns.join(" | ")}
+│ ✧ `Info`    : ${c.desc || "No description"}
+╰───────────────❍
+`;
   });
 
-  cmdText += `┕━━━━━━━━━━━━━━━━━━┙\n`;
-  cmdText += `⚠ *Total Commands*: ${cmdsInCategory.length}`;
+  cmdText += `
+╭━━━━━━━━━━━━━━━━━━╮
+│ 🌸 `Total Commands` : ${cmdsInCategory.length}
+╰━━━━━━━━━━━━━━━━━━╯
+`;
 
   await test.sendMessage(from, {
     image: { url: headerImage },
