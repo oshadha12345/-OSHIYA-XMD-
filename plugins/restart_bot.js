@@ -20,11 +20,10 @@ cmd({
       return reply("❌ 𝐎𝐖𝐍𝐄𝐑 𝐎𝐍𝐋𝐘");
     }
 
-    await reply("♻️ *Restarting*");
-
+    await reply("♻️ *Restarting Bot...*");
     await sleep(1500);
-    const { exec } = require("child_process");
-    exec("pm2 restart all");
+
+    process.exit(1); // PM2 will auto restart
 
   } catch (e) {
     console.error("Restart error:", e);
