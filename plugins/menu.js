@@ -59,12 +59,18 @@ cmd({
     }
 
     // Build menu text
-    let menuText = `┎⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠┒
-👑 𝐎𝐰𝐧𝐞𝐫 : ${ownerName}
-👤 𝐔𝐬𝐞𝐫  : ${pushname}
-📅 𝐃𝐚𝐭𝐞  : ${date}
-⏰ 𝐓𝐢𝐦𝐞  : ${time}
-⚙ 𝐏𝐫𝐞𝐟𝐢𝐱 : ${prefix}
+    let menuText = `
+╔═══━━━─── • ───━━━═══╗
+        👑 𝐎𝐒𝐇𝐈𝐘𝐀 - 𝐌𝐃 👑
+╚═══━━━─── • ───━━━═══╝
+
+╭━━━〔 👤 𝐔𝐒𝐄𝐑 𝐈𝐍𝐅𝐎 〕━━━╮
+┃ 👑 𝐎𝐰𝐧𝐞𝐫   : ${ownerName}
+┃ 👤 𝐔𝐬𝐞𝐫    : ${pushname}
+┃ 📅 𝐃𝐚𝐭𝐞    : ${date}
+┃ ⏰ 𝐓𝐢𝐦𝐞    : ${time}
+┃ ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱  : ${prefix}
+╰━━━━━━━━━━━━━━━━━━━╯
 
 ╭━━〔✧ *CATEGORIES* ✧〕━━╮
 `;
@@ -75,7 +81,7 @@ cmd({
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n 💐 𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
+    menuText += `\n𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
 
     // Send menu
     await test.sendMessage(from, {
@@ -108,7 +114,7 @@ cmd({
 }, async (test, m, msg, { from, body, sender }) => {
 
   try {
-    await test.sendMessage(from, { react: { text: "💐", key: m.key } });
+    await test.sendMessage(from, { react: { text: "📂", key: m.key } });
 
     const pending = pendingMenu[sender];
     if (!pending) return;
