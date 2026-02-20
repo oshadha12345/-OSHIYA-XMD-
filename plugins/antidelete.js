@@ -2,30 +2,28 @@ const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 
+let antiDeleteEnabled = true; // default ON
+
 const tempFolder = path.join(__dirname, '../temp');
 if (!fs.existsSync(tempFolder)) {
   fs.mkdirSync(tempFolder, { recursive: true });
 }
 
 const messageStore = new Map();
-const mediaStore = new Map(); 
-
+const mediaStore = new Map();
 const CLEANUP_TIME = 10 * 60 * 1000;
 
 function unwrapMessage(message) {
   if (!message) return null;
 
-  if (message.ephemeralMessage) {
+  if (message.ephemeralMessage)
     return unwrapMessage(message.ephemeralMessage.message);
-  }
 
-  if (message.viewOnceMessageV2) {
+  if (message.viewOnceMessageV2)
     return unwrapMessage(message.viewOnceMessageV2.message);
-  }
 
-  if (message.viewOnceMessage) {
+  if (message.viewOnceMessage)
     return unwrapMessage(message.viewOnceMessage.message);
-  }
 
   return message;
 }
@@ -49,7 +47,39 @@ module.exports = {
   name: 'antidelete',
 
   onMessage: async (conn, msg) => {
-    if (!msg?.message || msg.key.fromMe) return;
+    if (!msg?.message) return;
+
+    const sender = msg.key.participant || msg.key.remoteJid;
+    const text =
+      msg.message.conversation ||
+      msg.message.extendedTextMessage?.text ||
+      '';
+
+    // =========================
+    // OWNER TOGGLE COMMAND
+    // =========================
+    if (msg.key.fromMe) {
+
+      if (text === '.antidelete on') {
+        antiDeleteEnabled = true;
+        await conn.sendMessage(msg.key.remoteJid, {
+          text: '✅ AntiDelete ON kara.'
+        });
+        return;
+      }
+
+      if (text === '.antidelete off') {
+        antiDeleteEnabled = false;
+        await conn.sendMessage(msg.key.remoteJid, {
+          text: '❌ AntiDelete OFF kara.'
+        });
+        return;
+      }
+    }
+
+    // If OFF → Stop here
+    if (!antiDeleteEnabled) return;
+    if (msg.key.fromMe) return;
 
     const keyId = msg.key.id;
     const remoteJid = msg.key.remoteJid;
@@ -109,6 +139,8 @@ module.exports = {
   },
 
   onDelete: async (conn, updates) => {
+    if (!antiDeleteEnabled) return;
+
     for (const update of updates) {
       const key = update?.key;
       if (!key?.id) continue;
@@ -134,28 +166,31 @@ module.exports = {
 
       try {
         const mediaPath = mediaStore.get(keyId);
+
         if (mediaPath && fs.existsSync(mediaPath)) {
           const opts = { caption, mentions: [sender] };
 
-          if (mediaPath.endsWith('.jpg')) {
+          if (mediaPath.endsWith('.jpg'))
             await conn.sendMessage(from, { image: { url: mediaPath }, ...opts });
-          } else if (mediaPath.endsWith('.mp4')) {
+
+          else if (mediaPath.endsWith('.mp4'))
             await conn.sendMessage(from, { video: { url: mediaPath }, ...opts });
-          } else if (mediaPath.endsWith('.webp')) {
+
+          else if (mediaPath.endsWith('.webp')) {
             await conn.sendMessage(from, { sticker: { url: mediaPath } });
             await conn.sendMessage(from, { text: caption, mentions: [sender] });
-          } else if (mediaPath.endsWith('.ogg')) {
+          }
+
+          else if (mediaPath.endsWith('.ogg')) {
             await conn.sendMessage(from, {
               audio: { url: mediaPath },
               mimetype: 'audio/ogg; codecs=opus'
             });
             await conn.sendMessage(from, { text: caption, mentions: [sender] });
-          } else {
-            await conn.sendMessage(from, {
-              document: { url: mediaPath },
-              ...opts
-            });
           }
+
+          else
+            await conn.sendMessage(from, { document: { url: mediaPath }, ...opts });
 
           continue;
         }
