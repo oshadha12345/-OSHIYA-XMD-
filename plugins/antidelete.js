@@ -63,7 +63,7 @@ module.exports = {
       if (text === '.antidelete on') {
         antiDeleteEnabled = true;
         await conn.sendMessage(msg.key.remoteJid, {
-          text: '✅ AntiDelete ON kara.'
+          text: '✅ 𝐀𝐍𝐓𝐈𝐃𝐄𝐋𝐄𝐓𝐄 𝐎𝐍'
         });
         return;
       }
@@ -71,7 +71,7 @@ module.exports = {
       if (text === '.antidelete off') {
         antiDeleteEnabled = false;
         await conn.sendMessage(msg.key.remoteJid, {
-          text: '❌ AntiDelete OFF kara.'
+          text: '❌ 𝐀𝐍𝐓𝐈𝐃𝐄𝐋𝐄𝐓𝐄 𝐎𝐅𝐅'
         });
         return;
       }
