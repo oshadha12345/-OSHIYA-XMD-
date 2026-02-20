@@ -65,7 +65,7 @@ cmd({
 ⏰ 𝐓𝐢𝐦𝐞  : ${time}
 ⚙ 𝐏𝐫𝐞𝐟𝐢𝐱 : ${prefix}
 
-╭━━〔✧*CATEGORIES*✧〕━━╮
+╭━━〔✧ *CATEGORIES* ✧〕━━╮
 `;
 
     categories.forEach((cat, i) => {
@@ -116,7 +116,7 @@ cmd({
     const cmdsInCategory = commandMap[selectedCategory];
 
     let cmdText = `
-╭━〔${selectedCategory}〕━╮
+╭━───❰ ${selectedCategory} ❱───━╮
 `;
 
     cmdsInCategory.forEach((c, i) => {
