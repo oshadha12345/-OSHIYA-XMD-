@@ -25,8 +25,8 @@ async (conn, mek, m, { from, reply, quoted }) => {
         const caption = `
 ╭━━━〔 🎯 𝙂𝙀𝙏 𝘿𝙋 𝙎𝙐𝘾𝘾𝙀𝙎𝙎 〕━━━╮
 ┃ 👤 *User:* @${user.split("@")[0]}
-┃ 🖼️ *Status:* `Downloaded Successfully`
-┃ ⚡ *Quality:* `High Resolution`
+┃ 🖼️ *Status:* Downloaded Successfully
+┃ ⚡ *Quality:* High Resolution
 ╰━━━━━━━━━━━━━━━━━━━━╯
         `
 
