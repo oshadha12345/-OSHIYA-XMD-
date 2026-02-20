@@ -17,7 +17,7 @@ async (danuwamd, mek, m, {
 
         const buttons = [
             {
-                buttonId: `${config.PREFIX}menu`,
+                buttonId: `.menu`,
                 buttonText: { displayText: "📜 MENU" },
                 type: 1
             }
