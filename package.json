@@ -1,12 +1,12 @@
 {
-  "name": "𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃",
+  "name": "💫𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃💫",
   "version": "1.0.0",
   "description": "A Powerfull Whatsapp Bot",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start index.js --deep-monitoring --attach --name 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃",
-    "stop": "pm2 stop 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃",
-    "restart": "pm2 restart 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃"
+    "start": "pm2 start index.js --deep-monitoring --attach --name 💫𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃💫",
+    "stop": "pm2 stop 💫𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃💫",
+    "restart": "pm2 restart 💫𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃💫"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
