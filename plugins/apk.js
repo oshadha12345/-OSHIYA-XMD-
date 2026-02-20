@@ -7,7 +7,7 @@ cmd(
     pattern: "apk",
     alias: ["android", "af"],
     react: "📍",
-    desc: "Download your favourite apk",
+    desc: "Download apk",
     category: "download",
     filename: __filename,
   },
