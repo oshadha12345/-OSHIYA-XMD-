@@ -58,12 +58,12 @@ cmd({
     }
 
     // Build menu text
-    let menuText = `⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠
-👑 `Owner` : ${ownerName}
-👤 `User`  : ${pushname || "Unknown"}
-📅 `Date`  : ${date}
-⏰ `Time`  : ${time}
-⚙ `Prefix` : ${prefix}
+    let menuText = `┎⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠┒
+👑 𝐎𝐰𝐧𝐞𝐫 : ${ownerName}
+👤 𝐔𝐬𝐞𝐫  : ${pushname}
+📅 𝐃𝐚𝐭𝐞  : ${date}
+⏰ 𝐓𝐢𝐦𝐞  : ${time}
+⚙ 𝐏𝐫𝐞𝐟𝐢𝐱 : ${prefix}
 
 ╭━━〔✧*CATEGORIES*✧〕━━╮
 `;
@@ -74,7 +74,7 @@ cmd({
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n `Reply with category number` 🌸`;
+    menuText += `\n 💐 𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
 
     // Send menu
     await test.sendMessage(from, {
@@ -125,15 +125,15 @@ cmd({
         .map(p => `「 ${prefix}${p} 」`);
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ `Command` : ${patterns.join(" | ")}
-│ ✧ `Info`    : ${c.desc || "No description"}
+│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 : ${patterns.join(" | ")}
+│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
     });
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 `Total Commands` : ${cmdsInCategory.length}
+│ 🌸 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
