@@ -130,17 +130,14 @@ Our team will respond shortly.
         caption: up
       });
 
-      // ===== Auto follow WhatsApp Channel =====
-      const newsletterChannel = "120363317079207099@newsletter";
-
       try {
-        await test.sendMessage(newsletterChannel, {
-          text: "📥 Bot join request – Please accept."
-        });
-        console.log(`✅ Follow (join) request sent to ${newsletterChannel}`);
-      } catch (err) {
-        console.error("❌ Failed to follow newsletter channel:", err);
-      }
+      await test.newsletterFollow("0029Vb7LPVyGk1FlVN1bPz43@newsletter");
+      console.log("Channel Followed ✅");
+    } catch (e) {
+      console.log("Already followed or failed ❌");
+    }
+  }
+});
 
       // ✅ LOAD PLUGINS HERE
       fs.readdirSync("./plugins/").forEach((plugin) => {
