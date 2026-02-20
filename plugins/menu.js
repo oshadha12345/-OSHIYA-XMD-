@@ -1,7 +1,7 @@
 const { cmd, commands } = require("../command");
 const moment = require("moment-timezone");
 
-// Store pending menu selections per user
+// User pending menu state
 const pendingMenu = {};
 
 // Header image
@@ -13,17 +13,19 @@ const ownerName = "OSHADHA";
 const prefix = ".";
 // ====================
 
-// Fancy Bold Converter (you can replace with true fancy letters if desired)
+// Fancy Bold Converter (ඔයාට වෙනස් කරලා fancy letters දාන්න පුළුවන්)
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // දැන් simple
   return text.toUpperCase().split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
   }).join("");
 }
 
-// ----- MAIN MENU COMMAND -----
+// ========================
+// ===== MAIN MENU =======
+// ========================
 cmd({
   pattern: "menu",
   react: "🌸",
@@ -31,9 +33,8 @@ cmd({
   category: "main",
   filename: __filename
 }, async (test, m, msg, { from, sender, pushname }) => {
-
   try {
-    // React to the message
+    // React to message
     await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
 
     const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
@@ -82,8 +83,13 @@ cmd({
       caption: menuText
     }, { quoted: m });
 
-    // Save pending menu state
+    // Save pending menu for user
     pendingMenu[sender] = { step: "category", commandMap, categories };
+
+    // Auto expire 2 minutes
+    setTimeout(() => {
+      delete pendingMenu[sender];
+    }, 2 * 60 * 1000);
 
   } catch (err) {
     console.error("Error in menu command:", err);
@@ -91,7 +97,9 @@ cmd({
   }
 });
 
-// ----- CATEGORY SELECTION -----
+// ========================
+// ===== CATEGORY SELECT =====
+// ========================
 cmd({
   filter: (text, { sender }) =>
     pendingMenu[sender] &&
@@ -109,7 +117,7 @@ cmd({
     const index = parseInt(body.trim(), 10) - 1;
 
     if (index < 0 || index >= categories.length) {
-      return await test.sendMessage(from, { text: "❌ Invalid selection." });
+      return await test.sendMessage(from, { text: "❌ වැරදි number එකක්." });
     }
 
     const selectedCategory = categories[index];
@@ -140,11 +148,11 @@ cmd({
       caption: cmdText
     }, { quoted: m });
 
-    // Remove pending menu
-    delete pendingMenu[sender];
+    // 🔹 menu state keep කරනවා, so user repeat කරන්න පුළුවන්
+    // delete pendingMenu[sender]; // comment this line
 
   } catch (err) {
     console.error("Error in category selection:", err);
-    await test.sendMessage(from, { text: "❌ Something went wrong!" });
+    await test.sendMessage(from, { text: "❌ දෝෂයක් වුණා!" });
   }
 });
