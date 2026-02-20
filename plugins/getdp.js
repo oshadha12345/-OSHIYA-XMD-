@@ -22,11 +22,11 @@ async (conn, mek, m, { from, reply, quoted }) => {
         }
 
         // Premium Style Caption
-        const caption = `╭━━━〔 🎯 𝘿𝙋 𝙎𝙐𝘾𝘾𝙀𝙎𝙎 〕━━━╮
+        const caption = `╭━━━〔 🎯 𝘿𝙋 〕━━━╮
 ┃ 👤 *User:* @${user.split("@")[0]}
-┃ 🖼️ *Status:* Downloaded Successfully
+┃ 🖼️ *Status:* Successfully
 ┃ ⚡ *Quality:* High Resolution
-╰━━━━━━━━━━━━━━━━━━━━╯`
+╰━━━━━━━━━━━━━━━━╯`
 
         // Send Profile Picture
         await conn.sendMessage(from, {
