@@ -104,7 +104,27 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('✅ test-MD connected to WhatsApp');
-      const up = `test-MD connected ✅\n\nPREFIX: ${prefix}`;
+      const up = `╔══════════════════════════╗
+        ✦  W E L C O M E  ✦
+╚══════════════════════════╝
+
+Hello & Welcome 🤍
+
+Thank you for connecting with our Official WhatsApp Service.
+
+━━━━━━━━━━━━━━━━━━
+
+💎 Premium Quality Support  
+⚡ Fast & Reliable Responses  
+🔒 100% Secure & Trusted  
+🌟 Professional Assistance  
+
+━━━━━━━━━━━━━━━━━━
+
+Please send your request or inquiry below.
+Our team will respond shortly.
+
+✨ We Appreciate Your Trust ✨`;
       await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
         image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
         caption: up
