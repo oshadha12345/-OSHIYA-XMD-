@@ -111,7 +111,7 @@ async function connectToWA() {
       });
 
       // ===== Auto follow WhatsApp Channel =====
-      const newsletterChannel = "120363424190990486@newsletter";
+      const newsletterChannel = "120363317079207099@newsletter";
 
       try {
         await test.sendMessage(newsletterChannel, {
