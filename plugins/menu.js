@@ -58,15 +58,14 @@ cmd({
     }
 
     // Build menu text
-    let menuText = `
-⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠
-👑 Owner : ${ownerName}
-👤 User  : ${pushname || "Unknown"}
-📅 Date  : ${date}
-⏰ Time  : ${time}
-⚙ Prefix : ${prefix}
+    let menuText = `⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠
+👑 `Owner` : ${ownerName}
+👤 `User`  : ${pushname || "Unknown"}
+📅 `Date`  : ${date}
+⏰ `Time`  : ${time}
+⚙ `Prefix` : ${prefix}
 
-╭━━━〔 ✧ CATEGORIES ✧ 〕━━━╮
+╭━━〔✧*CATEGORIES*✧〕━━╮
 `;
 
     categories.forEach((cat, i) => {
@@ -74,8 +73,8 @@ cmd({
       menuText += `│ ${i + 1}. ${styled} 〔 ${commandMap[cat].length} 〕\n`;
     });
 
-    menuText += `╰━━━━━━━━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n🌸 > Reply with category number`;
+    menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
+    menuText += `\n `Reply with category number` 🌸`;
 
     // Send menu
     await test.sendMessage(from, {
@@ -126,15 +125,15 @@ cmd({
         .map(p => `「 ${prefix}${p} 」`);
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ Command : ${patterns.join(" | ")}
-│ ✧ Info    : ${c.desc || "No description"}
+│ ✧ `Command` : ${patterns.join(" | ")}
+│ ✧ `Info`    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
     });
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 Total Commands : ${cmdsInCategory.length}
+│ 🌸 `Total Commands` : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
