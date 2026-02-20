@@ -1,6 +1,6 @@
 const { cmd } = require("../command");
 const { getGroupAdmins } = require("../lib/functions");
-const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+const { downloadMediaMessage } = require('@rexxhayanasi/elaina-baileys');
 
 
 // ====== UTILS ======
