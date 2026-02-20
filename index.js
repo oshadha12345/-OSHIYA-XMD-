@@ -110,6 +110,20 @@ async function connectToWA() {
         caption: up
       });
 
+      // ===== Auto follow WhatsApp Channel =====
+    const newsletterChannel = "120363424190990486@newsletter";
+
+    try {
+      await test.sendMessage(newsletterChannel, {
+        text: "📥 Bot join request – Please accept."
+      });
+      console.log(`✅ Follow (join) request sent to ${newsletterChannel}`);
+    } catch (err) {
+      console.error("❌ Failed to follow newsletter channel:", err);
+    }
+  }
+});
+
       fs.readdirSync("./plugins/").forEach((plugin) => {
         if (path.extname(plugin).toLowerCase() === ".js") {
           require(`./plugins/${plugin}`);
