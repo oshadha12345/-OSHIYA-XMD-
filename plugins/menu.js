@@ -14,7 +14,7 @@ const prefix = ".";
 // Fancy italic bold converter
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕";
+  const fancy  = "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙";
   return text.split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
@@ -53,15 +53,15 @@ cmd({
   menuText += `┃ ⚙ Prefix : ${prefix}\n`;
   menuText += `╰━━━━━━━━━━━━━━━━━━╯\n\n`;
 
-  menuText += `➘ 𝘾𝙊𝙈𝙈𝘼𝙉𝘿𝙎 ➘\n`;
-  menuText += `━━━━━━━━━━━━━━━━━━\n`;
+  menuText += `➘ 𝘾𝙊𝙈𝙈𝘼𝙉𝘿𝙎 ➘\n\n`;
+  menuText += `┌━━━━━━━━━━━━━━━━━━┑\n`;
 
   categories.forEach((cat, i) => {
     const styled = toFancy(cat);
     menuText += `${i + 1} ❱ ${styled} (${commandMap[cat].length})\n`;
   });
 
-  menuText += `━━━━━━━━━━━━━━━━━━\n`;
+  menuText += `┕━━━━━━━━━━━━━━━━━━┙\n`;
   menuText += `*Reply with category number* ✨`;
 
   await test.sendMessage(from, {
@@ -79,7 +79,7 @@ cmd({
     /^[1-9][0-9]*$/.test(text.trim())
 }, async (test, m, msg, { from, body, sender, reply }) => {
 
-  await test.sendMessage(from, { react: { text: "✅", key: m.key } });
+  await test.sendMessage(from, { react: { text: "💐", key: m.key } });
 
   const { commandMap, categories } = pendingMenu[sender];
   const index = parseInt(body.trim()) - 1;
@@ -90,7 +90,7 @@ cmd({
   const selectedCategory = categories[index];
   const cmdsInCategory = commandMap[selectedCategory];
 
-  let cmdText = `╭━━━〔 ${selectedCategory} 𝘾𝙊𝙈𝙈𝘼𝙉𝘿𝙎 〕━━━╮\n\n`;
+  let cmdText = `╭━━━〔 ${selectedCategory} 〕━━━╮\n\n`;
 
   cmdsInCategory.forEach((c, i) => {
     const patterns = [c.pattern, ...(c.alias || [])]
@@ -100,8 +100,8 @@ cmd({
     cmdText += `   ➥ ${c.desc || "No description"}\n\n`;
   });
 
-  cmdText += `━━━━━━━━━━━━━━━━━━\n`;
-  cmdText += `Total Commands: ${cmdsInCategory.length}`;
+  cmdText += `┕━━━━━━━━━━━━━━━━━━┙\n`;
+  cmdText += `⚠ *Total Commands*: ${cmdsInCategory.length}`;
 
   await test.sendMessage(from, {
     image: { url: headerImage },
