@@ -1,163 +1,163 @@
-const { cmd, commands } = require("../command");
-const moment = require("moment-timezone");
+import { Client, Utils, Config } from '@neoxr/wb'
+import moment from "moment-timezone"
+import { cmd, commands } from "../command.js"
 
-// User pending menu state
-const pendingMenu = {};
+// ================= CONFIG =================
+const ownerName = "OSHADHA"
+const prefix = "."
+const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg"
 
-// Header image
-const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
+const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/gata%20only%20(tiktok%20version_best%20part_)%20-%20floyymenor%20ft.%20cris%20mj%E3%80%8Eedit%20audio%E3%80%8F(MP3_160K).mp3"
+// ==========================================
 
-// ====== CONFIG ======
-const botName = "OSHIYA-MD";
-const ownerName = "OSHADHA";
-const prefix = ".";
-// ====================
+const pendingMenu = {}
 
-// Fancy Bold Converter (ඔයාට වෙනස් කරලා fancy letters දාන්න පුළුවන්)
-function toFancy(text) {
-  const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // දැන් simple
-  return text.toUpperCase().split("").map(c => {
-    const i = normal.indexOf(c);
-    return i !== -1 ? fancy[i] : c;
-  }).join("");
-}
-
-// ========================
-// ===== MAIN MENU =======
-// ========================
+// ================= MAIN MENU =================
 cmd({
   pattern: "menu",
   react: "🌸",
   desc: "Show command categories",
   category: "main",
-  filename: __filename
-}, async (test, m, msg, { from, sender, pushname }) => {
-  try {
-    // React to message
-    await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
+  filename: import.meta.url
+}, async (client, m, msg, { from, sender, pushname }) => {
 
-    const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
-    const time = moment().tz("Asia/Colombo").format("HH:mm:ss");
+  try {
+
+    // 🌸 React
+    await client.sendMessage(from, {
+      react: { text: "🌸", key: m.key }
+    })
+
+    // 🔊 AUTO VOICE (PTT)
+    await client.sendFile(
+      from,
+      autoVoice,
+      "voice.mp3",
+      "",
+      m,
+      { ptt: true }
+    )
+
+    const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD")
+    const time = moment().tz("Asia/Colombo").format("HH:mm:ss")
 
     if (!commands || !Array.isArray(commands) || commands.length === 0) {
-      return test.sendMessage(from, { text: "❌ No commands found!" });
+      return client.sendMessage(from, { text: "❌ No commands found!" })
     }
 
-    // Organize commands by category
-    const commandMap = {};
+    // Organize commands
+    const commandMap = {}
     for (const command of commands) {
-      if (command.dontAddCommandList) continue;
-      const category = (command.category || "MISC").toUpperCase();
-      if (!commandMap[category]) commandMap[category] = [];
-      commandMap[category].push(command);
+      if (command.dontAddCommandList) continue
+      const category = (command.category || "MISC").toUpperCase()
+      if (!commandMap[category]) commandMap[category] = []
+      commandMap[category].push(command)
     }
 
-    const categories = Object.keys(commandMap);
+    const categories = Object.keys(commandMap)
+
     if (categories.length === 0) {
-      return test.sendMessage(from, { text: "❌ No categories available!" });
+      return client.sendMessage(from, { text: "❌ No categories available!" })
     }
 
-    // Build menu text
-    let menuText = `╔═══━━━── • ──━━━═══╗
+    // Build Menu
+    let menuText = `╔═══━━━─── • ───━━━═══╗
    👑  𝐎𝐒𝐇𝐈𝐘𝐀 - 𝐌𝐃  👑
-╚═══━━━── • ──━━━═══╝
+╚═══━━━─── • ───━━━═══╝
 
-╭━━━〔 👤 𝐈𝐍𝐅𝐎 〕━━━╮
-┃ 👑 𝐎𝐰𝐧𝐞𝐫   : ${ownerName}
-┃ 👤 𝐔𝐬𝐞𝐫    : ${pushname}
-┃ 📅 𝐃𝐚𝐭𝐞    : ${date}
-┃ ⏰ 𝐓𝐢𝐦𝐞    : ${time}
-┃ ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱  : ${prefix}
+╭━━━〔 👤 USER INFO 〕━━━╮
+┃ 👑 Owner   : ${ownerName}
+┃ 👤 User    : ${pushname}
+┃ 📅 Date    : ${date}
+┃ ⏰ Time    : ${time}
+┃ ⚙️ Prefix  : ${prefix}
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭━━〔✧ *CATEGORIES* ✧〕━━╮
-`;
+╭━━〔 ✧ CATEGORIES ✧ 〕━━╮
+`
 
     categories.forEach((cat, i) => {
-      const styled = toFancy(cat);
-      menuText += `│ ${i + 1}. ${styled} 〔 ${commandMap[cat].length} 〕\n`;
-    });
+      menuText += `│ ${i + 1}. ${cat} 〔 ${commandMap[cat].length} 〕\n`
+    })
 
-    menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
+    menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`
+    menuText += `\nReply with category number 🌸`
 
-    // Send menu
-    await test.sendMessage(from, {
+    // Send Menu Image + Caption
+    await client.sendMessage(from, {
       image: { url: headerImage },
       caption: menuText
-    }, { quoted: m });
+    }, { quoted: m })
 
-    // Save pending menu for user
-    pendingMenu[sender] = { step: "category", commandMap, categories };
+    // Save user state
+    pendingMenu[sender] = { step: "category", commandMap, categories }
 
-    // Auto expire 2 minutes
     setTimeout(() => {
-      delete pendingMenu[sender];
-    }, 2 * 60 * 1000);
+      delete pendingMenu[sender]
+    }, 120000)
 
   } catch (err) {
-    console.error("Error in menu command:", err);
-    await test.sendMessage(from, { text: "❌ Something went wrong!" });
+    console.log(err)
+    await client.sendMessage(from, { text: "❌ Something went wrong!" })
   }
-});
 
-// ========================
-// ===== CATEGORY SELECT =====
-// ========================
+})
+
+
+// ================= CATEGORY SELECT =================
 cmd({
   filter: (text, { sender }) =>
     pendingMenu[sender] &&
     pendingMenu[sender].step === "category" &&
     /^[1-9][0-9]*$/.test(text.trim())
-}, async (test, m, msg, { from, body, sender }) => {
+}, async (client, m, msg, { from, body, sender }) => {
 
   try {
-    await test.sendMessage(from, { react: { text: "📂", key: m.key } });
 
-    const pending = pendingMenu[sender];
-    if (!pending) return;
+    await client.sendMessage(from, {
+      react: { text: "📂", key: m.key }
+    })
 
-    const { commandMap, categories } = pending;
-    const index = parseInt(body.trim(), 10) - 1;
+    const pending = pendingMenu[sender]
+    if (!pending) return
+
+    const { commandMap, categories } = pending
+    const index = parseInt(body.trim(), 10) - 1
 
     if (index < 0 || index >= categories.length) {
-      return await test.sendMessage(from, { text: "❌ වැරදි number එකක්." });
+      return client.sendMessage(from, { text: "❌ වැරදි number එකක්." })
     }
 
-    const selectedCategory = categories[index];
-    const cmdsInCategory = commandMap[selectedCategory];
+    const selectedCategory = categories[index]
+    const cmdsInCategory = commandMap[selectedCategory]
 
     let cmdText = `
 ╭━───❰ ${selectedCategory} ❱───━╮
-`;
+`
 
     cmdsInCategory.forEach((c, i) => {
-      const patterns = [c.pattern]; // alias එක ignore කරලා
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 : ${patterns.join(" | ")}
-│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
+│ ✧ COMMAND : ${c.pattern}
+│ ✧ INFO    : ${c.desc || "No description"}
 ╰───────────────❍
-`;
-    });
+`
+    })
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 : ${cmdsInCategory.length}
+│ 🌸 Total Commands : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
-`;
+`
 
-    await test.sendMessage(from, {
+    await client.sendMessage(from, {
       image: { url: headerImage },
       caption: cmdText
-    }, { quoted: m });
-
-    // 🔹 menu state keep කරනවා, so user repeat කරන්න පුළුවන්
-    // delete pendingMenu[sender]; // comment this line
+    }, { quoted: m })
 
   } catch (err) {
-    console.error("Error in category selection:", err);
-    await test.sendMessage(from, { text: "❌ දෝෂයක් වුණා!" });
+    console.log(err)
+    await client.sendMessage(from, { text: "❌ Error occurred!" })
   }
-});
+
+})
