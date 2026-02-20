@@ -13,7 +13,7 @@ const ownerName = "OSHADHA";
 const prefix = ".";
 // ====================
 
-// Fancy Bold Converter (example, can replace with true fancy letters if desired)
+// Fancy Bold Converter (you can replace with true fancy letters if desired)
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -33,6 +33,7 @@ cmd({
 }, async (test, m, msg, { from, sender, pushname }) => {
 
   try {
+    // React to the message
     await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
 
     const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
@@ -58,14 +59,14 @@ cmd({
 
     // Build menu text
     let menuText = `
-⚠𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃⚠
-👑 `Owner` : ${ownerName}
-👤 `User`  : ${pushname || "Unknown"}
-📅 `Date`  : ${date}
-⏰ `Time`  : ${time}
-⚙ `Prefix` : ${prefix}
+⚠ 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃 ⚠
+👑 Owner : ${ownerName}
+👤 User  : ${pushname || "Unknown"}
+📅 Date  : ${date}
+⏰ Time  : ${time}
+⚙ Prefix : ${prefix}
 
-╭━━━〔 ✧ `CATEGORIES` ✧ 〕━━━╮
+╭━━━〔 ✧ CATEGORIES ✧ 〕━━━╮
 `;
 
     categories.forEach((cat, i) => {
@@ -98,6 +99,7 @@ cmd({
     pendingMenu[sender].step === "category" &&
     /^[1-9][0-9]*$/.test(text.trim())
 }, async (test, m, msg, { from, body, sender }) => {
+
   try {
     await test.sendMessage(from, { react: { text: "💐", key: m.key } });
 
@@ -124,15 +126,15 @@ cmd({
         .map(p => `「 ${prefix}${p} 」`);
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ `Command` : ${patterns.join(" | ")}
-│ ✧ `Info`    : ${c.desc || "No description"}
+│ ✧ Command : ${patterns.join(" | ")}
+│ ✧ Info    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
     });
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 `Total Commands` : ${cmdsInCategory.length}
+│ 🌸 Total Commands : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
