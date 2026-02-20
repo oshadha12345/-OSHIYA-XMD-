@@ -104,6 +104,15 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('✅ test-MD connected to WhatsApp');
+
+// ✅ Auto Change About (Bio)
+try {
+  await test.updateProfileStatus("OSHIYA-MD");
+  console.log("✅ About updated to OSHIYAMD");
+} catch (err) {
+  console.log("❌ Failed to update About:", err);
+}
+
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
 ╚══════════════════════════╝
