@@ -12,7 +12,6 @@
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "api-dylux": "^1.8.5",
     "gifted-btns": "^1.0.0",
-    "@neoxr/wb": "^6.0.0-rc.32"
     "axios": "^1.9.0",
     "browser-id3-writer": "^6.2.0",
     "cheerio": "^1.0.0",
