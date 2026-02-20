@@ -81,7 +81,7 @@ global.pluginHooks.push(antiDeletePlugin);
 
 
 async function connectToWA() {
-  console.log("Connecting test-MD 🧬...");
+  console.log("𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃❤️‍🔥");
   const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '/auth_info_baileys/'));
   const { version } = await fetchLatestBaileysVersion();
 
@@ -108,7 +108,7 @@ async function connectToWA() {
 // ✅ Auto Change About (Bio)
 try {
   await test.updateProfileStatus("OSHIYA-MD");
-  console.log("✅ About updated to OSHIYAMD");
+  console.log("✅ 𝐀𝐁𝐎𝐔𝐓 𝐔𝐏𝐃𝐀𝐓𝐄");
 } catch (err) {
   console.log("❌ Failed to update About:", err);
 }
@@ -344,4 +344,4 @@ app.get("/", (req, res) => {
   res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
 });
 
-app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
+app.listen(port, () => console.log(`𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅`));
