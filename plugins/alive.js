@@ -1,5 +1,6 @@
 const { cmd, commands } = require('../command');
 const config = require('../config');
+
 cmd({
     pattern: "alive",
     desc: "Check bot online or no.",
@@ -13,10 +14,23 @@ async (danuwamd, mek, m, {
     groupAdmins, isBotAdmins, isAdmins, reply
 }) => {
     try {
-        return await danuwamd.sendMessage(from, {
+
+        const buttons = [
+            {
+                buttonId: `${config.PREFIX}menu`,
+                buttonText: { displayText: "📜 MENU" },
+                type: 1
+            }
+        ];
+
+        await danuwamd.sendMessage(from, {
             image: { url: config.ALIVE_IMG },
-            caption: config.ALIVE_MSG
+            caption: config.ALIVE_MSG,
+            footer: config.BOT_NAME,
+            buttons: buttons,
+            headerType: 4
         }, { quoted: mek });
+
     } catch (e) {
         console.log(e);
         reply(`${e}`);
