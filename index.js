@@ -128,16 +128,7 @@ Our team will respond shortly.
       await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
         image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
         caption: up
-      });
-
-      try {
-      await test.newsletterFollow("0029Vb7LPVyGk1FlVN1bPz43@newsletter");
-      console.log("Channel Followed ✅");
-    } catch (e) {
-      console.log("Already followed or failed ❌");
-    }
-  }
-});
+      });  
 
       // ✅ LOAD PLUGINS HERE
       fs.readdirSync("./plugins/").forEach((plugin) => {
