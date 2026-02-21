@@ -4,29 +4,21 @@ const { sleep } = require('../lib/functions');
 
 cmd({
   pattern: "restart",
-  react: '♻️',
+  alias: ["reboot"],
+  react: "🔄",
   desc: "Restart the bot",
-  category: "main",
-  filename: __filename
-}, async (
-  conn, mek, m, {
-    from, sender, reply
-  }
-) => {
-  try {
-    const ownerJid = config.BOT_OWNER + '@s.whatsapp.net';
+  category: "owner",
+  filename: __filename,
 
-    if (sender !== ownerJid) {
-      return reply("❌ 𝐎𝐖𝐍𝐄𝐑 𝐎𝐍𝐋𝐘");
-    }
+  async function(client, mek, m, { from, isOwner, reply }) {
 
-    await reply("♻️ *Restarting Bot...*");
-    await sleep(1500);
+    if (!isOwner) return reply("❌ Owner only command!");
 
-    process.exit(1); // PM2 will auto restart
+    await reply("🔄 Bot is restarting...");
 
-  } catch (e) {
-    console.error("Restart error:", e);
-    reply("❌ Failed to restart:\n" + e);
+    setTimeout(() => {
+      process.exit(0);
+    }, 1500);
+
   }
 });
