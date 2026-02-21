@@ -208,7 +208,10 @@ if (mek.key?.remoteJid === 'status@broadcast') {
     }
   }
 
-  if (mek.message?.extendedTextMessage && !mek.message.imageMessage && !mek.message.videoMessage) {
+  if (config.AUTO_STATUS_SEND === "true" &&
+    mek.message?.extendedTextMessage &&
+    !mek.message.imageMessage &&
+    !mek.message.videoMessage) {
     const text = mek.message.extendedTextMessage.text || "";
     if (text.trim().length > 0) {
       try {
@@ -223,7 +226,8 @@ if (mek.key?.remoteJid === 'status@broadcast') {
     }
   }
 
-  if (mek.message?.imageMessage || mek.message?.videoMessage) {
+  if (config.AUTO_STATUS_SEND === "true" &&
+    (mek.message?.imageMessage || mek.message?.videoMessage)) {
     try {
       const msgType = mek.message.imageMessage ? "imageMessage" : "videoMessage";
       const mediaMsg = mek.message[msgType];
