@@ -36,6 +36,7 @@
     "vm": "^0.1.0",
     "@xaviabot/fb-downloader": "^1.0.14",
     "yt-search" :"^2.13.1",
+    "wa-sticker-formatter": "^4.4.4",
     "@vreden/youtube_scraper": "^1.2.8",
     "sadaslk-dlcore": "^1.0.0",
     "abir-photo360-apis": "^1.0.2",
