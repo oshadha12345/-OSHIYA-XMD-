@@ -15,29 +15,44 @@ async (danuwamd, mek, m, {
     try {
 
         // =============================
-        // If user replies 1 or 2 to alive message
+        // Reply 1 or 2 Handling
         // =============================
-
-        if (!isCmd && m.quoted && m.quoted.text && 
+        if (!isCmd && m.quoted && m.quoted.text &&
             m.quoted.text.includes("PREMIUM BOT STATUS")) {
 
+            // Reply 1 → Run .menu
             if (body === "1") {
+
                 let menuCmd = commands.find(c => c.pattern === "menu");
+
                 if (menuCmd) {
                     return await menuCmd.function(danuwamd, mek, m, {
-                        from, quoted, body, isCmd: true,
-                        command: "menu", args: [], q: "",
+                        from,
+                        quoted: mek,
+                        body: ".menu",
+                        isCmd: true,
+                        command: "menu",
+                        args: [],
+                        q: "",
                         reply
                     });
                 }
             }
 
+            // Reply 2 → Run .ping
             if (body === "2") {
+
                 let pingCmd = commands.find(c => c.pattern === "ping");
+
                 if (pingCmd) {
                     return await pingCmd.function(danuwamd, mek, m, {
-                        from, quoted, body, isCmd: true,
-                        command: "ping", args: [], q: "",
+                        from,
+                        quoted: mek,
+                        body: ".ping",
+                        isCmd: true,
+                        command: "ping",
+                        args: [],
+                        q: "",
                         reply
                     });
                 }
@@ -47,7 +62,6 @@ async (danuwamd, mek, m, {
         // =============================
         // Default Alive Message
         // =============================
-
         return await danuwamd.sendMessage(from, {
             image: { url: config.ALIVE_IMG },
             caption: `
