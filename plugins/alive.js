@@ -7,14 +7,12 @@ cmd({
     category: "main",
     filename: __filename
 },
-async (danuwamd, mek, m, {
-    from, body, isCmd
-}) => {
+async (danuwamd, mek, m, { from, body, isCmd }) => {
 
     try {
 
         // =============================
-        // Reply Handling (NO SUBMENU)
+        // Reply Handling
         // =============================
         if (
             !isCmd &&
@@ -23,20 +21,14 @@ async (danuwamd, mek, m, {
             m.quoted.text.includes("PREMIUM BOT STATUS")
         ) {
 
-            const input = body.trim();
+            const input = body.trim().toLowerCase();
 
-            // Reply 1 → Send .menu message
             if (input === "1") {
-                return await danuwamd.sendMessage(from, {
-                    text: ".menu"
-                });
+                return await danuwamd.sendMessage(from, { text: ".menu" }, { quoted: mek });
             }
 
-            // Reply 2 → Send .ping message
             if (input === "2") {
-                return await danuwamd.sendMessage(from, {
-                    text: ".ping"
-                });
+                return await danuwamd.sendMessage(from, { text: ".ping" }, { quoted: mek });
             }
         }
 
@@ -55,8 +47,8 @@ async (danuwamd, mek, m, {
 
 📌 *Reply this message with number:*
 
-     1️⃣  ➜  MENU  
-     2️⃣  ➜  PING  
+     1 ➜ MENU  
+     2 ➜ PING  
 
 🟢 Bot is fully online & ready!
 `
