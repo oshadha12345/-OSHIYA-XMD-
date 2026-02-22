@@ -1,4 +1,4 @@
-const { cmd, commands } = require('../command');
+const { cmd } = require('../command');
 const config = require('../config');
 
 cmd({
@@ -8,56 +8,38 @@ cmd({
     filename: __filename
 },
 async (danuwamd, mek, m, {
-    from, quoted, body, isCmd, command, args, q,
-    reply
+    from, body, isCmd
 }) => {
 
     try {
 
         // =============================
-        // Reply 1 or 2 Handling
+        // Reply Handling (NO SUBMENU)
         // =============================
-        if (!isCmd && m.quoted && m.quoted.text &&
-    m.quoted.text.includes("PREMIUM BOT STATUS")) {
+        if (
+            !isCmd &&
+            m.quoted &&
+            m.quoted.text &&
+            m.quoted.text.includes("PREMIUM BOT STATUS")
+        ) {
 
-    // Reply 1 → Run .menu
-    if (body === "1") {
+            const input = body.trim();
 
-        let menuCmd = commands.find(c => c.pattern === ".menu");
+            // Reply 1 → Send .menu message
+            if (input === "1") {
+                return await danuwamd.sendMessage(from, {
+                    text: ".menu"
+                });
+            }
 
-        if (menuCmd) {
-            return await menuCmd.function(danuwamd, mek, m, {
-                from,
-                quoted: mek,
-                body: ".menu",
-                isCmd: true,
-                command: "menu",
-                args: [],
-                q: "",
-                reply
-            });
+            // Reply 2 → Send .ping message
+            if (input === "2") {
+                return await danuwamd.sendMessage(from, {
+                    text: ".ping"
+                });
+            }
         }
-    }
 
-    // Reply 2 → Run .ping
-    if (body === "2") {
-
-        let pingCmd = commands.find(c => c.pattern === ".ping");
-
-        if (pingCmd) {
-            return await pingCmd.function(danuwamd, mek, m, {
-                from,
-                quoted: mek,
-                body: ".ping",
-                isCmd: true,
-                command: "ping",
-                args: [],
-                q: "",
-                reply
-            });
-        }
-    }
-}
         // =============================
         // Default Alive Message
         // =============================
@@ -82,6 +64,5 @@ async (danuwamd, mek, m, {
 
     } catch (e) {
         console.log(e);
-        reply(`${e}`);
     }
 });
