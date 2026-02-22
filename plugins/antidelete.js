@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+const { downloadContentFromMessage } = require('@rexxhayanasi/elaina-baileys');
 
 let antiDeleteEnabled = true; // default ON
 
