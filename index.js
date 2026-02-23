@@ -1,5 +1,25 @@
-const { Component } = require('@neoxr/wb')
-const { Baileys, Function: Func, Config: env } = new Component();
+const {
+default: makeWASocket,
+useMultiFileAuthState,
+DisconnectReason,
+jidNormalizedUser,
+getContentType,
+proto,
+generateWAMessageContent,
+generateWAMessage,
+AnyMessageContent,
+prepareWAMessageMedia,
+areJidsSameUser,
+downloadContentFromMessage,
+MessageRetryMap,
+generateForwardMessageContent,
+generateWAMessageFromContent,
+generateMessageID, makeInMemoryStore,
+jidDecode,
+fetchLatestBaileysVersion,
+Browsers
+} = require('@whiskeysockets/baileys');
+
 const fs = require('fs');
 const P = require('pino');
 const express = require('express');
