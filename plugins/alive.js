@@ -1,5 +1,6 @@
 const { cmd, commands } = require('../command');
 const config = require('../config');
+const { sendButtons } = require('gifted-btns');
 
 cmd({
     pattern: "alive",
@@ -15,28 +16,23 @@ async (danuwamd, mek, m, {
 }) => {
     try {
 
-        // If user replies 1
-        if (q === "1") {
-            const menu = require('./menu');
-            return menu(danuwamd, mek, m, { from, reply });
-        }
-
-        // If user replies 2
-        if (q === "2") {
-            const ping = require('./ping');
-            return ping(danuwamd, mek, m, { from, reply });
-        }
-
-        // Default alive message
-        return await danuwamd.sendMessage(from, {
+        await sendButtons(danuwamd, from, {
             image: { url: config.ALIVE_IMG },
-            caption: `${config.ALIVE_MSG}
-
-Reply with:
-
-1️⃣  Menu
-2️⃣  Ping`
-        }, { quoted: mek });
+            text: config.ALIVE_MSG,
+            footer: "Select an option below",
+            buttons: [
+                {
+                    prifix: '.',
+                    id: 'ping',
+                    text: 'Ping'
+                },
+                {
+                    prifix: '.',
+                    id: 'menu',
+                    text: 'Menu'
+                }
+            ]
+        });
 
     } catch (e) {
         console.log(e);
