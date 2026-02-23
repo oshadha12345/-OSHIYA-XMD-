@@ -3,7 +3,6 @@ const config = require('../config');
 
 cmd({
     pattern: "alive",
-    react: "💗",
     desc: "Check bot online or no.",
     category: "main",
     filename: __filename
@@ -16,17 +15,27 @@ async (danuwamd, mek, m, {
 }) => {
     try {
 
+        // If user replies 1
         if (q === "1") {
-            return reply(".menu");
+            const menu = require('./menu');
+            return menu(danuwamd, mek, m, { from, reply });
         }
 
+        // If user replies 2
         if (q === "2") {
-            return reply(".ping🔥");
+            const ping = require('./ping');
+            return ping(danuwamd, mek, m, { from, reply });
         }
 
+        // Default alive message
         return await danuwamd.sendMessage(from, {
             image: { url: config.ALIVE_IMG },
-            caption: config.ALIVE_MSG + "\n\nReply with:\n1\n2"
+            caption: `${config.ALIVE_MSG}
+
+Reply with:
+
+1️⃣  Menu
+2️⃣  Ping`
         }, { quoted: mek });
 
     } catch (e) {
