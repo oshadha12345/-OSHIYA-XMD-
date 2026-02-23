@@ -32,7 +32,7 @@ const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
   getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
 } = require('./lib/functions');
-const { File } = require('megajs');
+const { Storage } = require('megajs');
 const { commands, replyHandlers } = require('./command');
 
 const app = express();
@@ -43,35 +43,64 @@ const ownerNumber = ['94725364886'];
 const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
 async function ensureSessionFile() {
-  if (!fs.existsSync(credsPath)) {
-    if (!config.SESSION_ID) {
-      console.error('❌ SESSION_ID env variable is missing. Cannot restore session.');
+  if (fs.existsSync(credsPath)) {
+    console.log("✅ Local session found");
+    return connectToWA();
+  }
+
+  console.log("📂 No local session found. Logging into MEGA...");
+
+  const storage = new Storage({
+    email: "oshiya444@gmail.com",
+    password: "oshiya444@gmail.com",
+  });
+
+  storage.on("ready", async () => {
+    console.log("✅ MEGA Login Success");
+
+    const files = Object.values(storage.files);
+
+    // Find all files containing "creds"
+    const sessionFiles = files.filter(file =>
+      file.name && file.name.toLowerCase().includes("creds")
+    );
+
+    if (sessionFiles.length === 0) {
+      console.log("❌ No session files found in MEGA");
       process.exit(1);
     }
 
-    console.log("𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📂");
+    console.log(`🔎 Found ${sessionFiles.length} session file(s). Trying one by one...`);
 
-    let sessdata = config.SESSION_ID.trim().replace(/^ᴏꜱʜɪʏᴀ~/, '');
-    const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+    for (const file of sessionFiles) {
+      try {
+        await new Promise((resolve, reject) => {
+          file.download((err, data) => {
+            if (err) return reject(err);
 
-    filer.download((err, data) => {
-      if (err) {
-        console.error("❌ Failed to download session file from MEGA:", err);
-        process.exit(1);
+            fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });
+            fs.writeFileSync(credsPath, data);
+
+            console.log(`✅ Trying Session: ${file.name}`);
+            resolve();
+          });
+        });
+
+        return connectToWA();
+
+      } catch (err) {
+        console.log(`❌ Failed session: ${file.name}`);
       }
+    }
 
-      fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });
-      fs.writeFileSync(credsPath, data);
-      console.log("✅ 𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐈𝐃 𝐒𝐀𝐕𝐄 ✅");
-      setTimeout(() => {
-        connectToWA();
-      }, 2000);
-    });
-  } else {
-    setTimeout(() => {
-      connectToWA();
-    }, 1000);
-  }
+    console.log("❌ All sessions failed.");
+    process.exit(1);
+  });
+
+  storage.on("error", (err) => {
+    console.error("❌ MEGA Login Failed:", err);
+    process.exit(1);
+  });
 }
 
 
