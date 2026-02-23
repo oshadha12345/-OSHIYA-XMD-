@@ -20,12 +20,12 @@ async (danuwamd, mek, m, {
             buttons: [
                 {
                     prefix: '.', // ✅ FIXED
-                    id: 'ping',
+                    id: '.ping',
                     text: 'Ping'
                 },
                 {
                     prefix: '.', // ✅ FIXED
-                    id: 'menu',
+                    id: '.menu',
                     text: 'Menu'
                 }
             ]
