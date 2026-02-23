@@ -1,23 +1,23 @@
 const {
-default: makeWASocket,
-useMultiFileAuthState,
-DisconnectReason,
-jidNormalizedUser,
-getContentType,
-proto,
-generateWAMessageContent,
-generateWAMessage,
-AnyMessageContent,
-prepareWAMessageMedia,
-areJidsSameUser,
-downloadContentFromMessage,
-MessageRetryMap,
-generateForwardMessageContent,
-generateWAMessageFromContent,
-generateMessageID, makeInMemoryStore,
-jidDecode,
-fetchLatestBaileysVersion,
-Browsers
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  jidNormalizedUser,
+  getContentType,
+  proto,
+  generateWAMessageContent,
+  generateWAMessage,
+  AnyMessageContent,
+  prepareWAMessageMedia,
+  areJidsSameUser,
+  downloadContentFromMessage,
+  MessageRetryMap,
+  generateForwardMessageContent,
+  generateWAMessageFromContent,
+  generateMessageID, makeInMemoryStore,
+  jidDecode,
+  fetchLatestBaileysVersion,
+  Browsers
 } = require('@whiskeysockets/baileys');
 
 const fs = require('fs');
@@ -75,7 +75,7 @@ async function ensureSessionFile() {
 }
 
 
-const antiDeletePlugin = require('./oshiya/antidelete.js');
+const antiDeletePlugin = require('./plugins/antidelete.js');
 global.pluginHooks = global.pluginHooks || [];
 global.pluginHooks.push(antiDeletePlugin);
 
@@ -140,13 +140,11 @@ Our team will respond shortly.
       });  
 
       // ✅ LOAD PLUGINS HERE
-      const pluginFolder = path.join(__dirname, 'oshiya');
-
-fs.readdirSync(pluginFolder).forEach((file) => {
-  if (file.endsWith('.js')) {
-    require(path.join(pluginFolder, file));
-  }
-});
+      fs.readdirSync("./plugins/").forEach((plugin) => {
+        if (path.extname(plugin).toLowerCase() === ".js") {
+          require(`./plugins/${plugin}`);
+        }
+      });
 
     }
   });
@@ -350,6 +348,4 @@ app.get("/", (req, res) => {
   res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
 });
 
-app.listen(port, () => console.log(`𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅`)
-});
-app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
+app.listen(port, () => console.log(`𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅`));
