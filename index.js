@@ -75,7 +75,7 @@ async function ensureSessionFile() {
 }
 
 
-const antiDeletePlugin = require('./plugins/antidelete.js');
+const antiDeletePlugin = require('./oshiya/antidelete.js');
 global.pluginHooks = global.pluginHooks || [];
 global.pluginHooks.push(antiDeletePlugin);
 
@@ -140,11 +140,13 @@ Our team will respond shortly.
       });  
 
       // ✅ LOAD PLUGINS HERE
-      fs.readdirSync("./plugins/").forEach((plugin) => {
-        if (path.extname(plugin).toLowerCase() === ".js") {
-          require(`./plugins/${plugin}`);
-        }
-      });
+      const pluginFolder = path.join(__dirname, 'oshiya');
+
+fs.readdirSync(pluginFolder).forEach((file) => {
+  if (file.endsWith('.js')) {
+    require(path.join(pluginFolder, file));
+  }
+});
 
     }
   });
