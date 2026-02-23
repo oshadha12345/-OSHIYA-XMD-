@@ -1,6 +1,5 @@
 const { cmd } = require('../command');
 const config = require('../config');
-const { sendButtons } = require('gifted-btns');
 
 cmd({
     pattern: "alive",
@@ -8,28 +7,32 @@ cmd({
     category: "main",
     filename: __filename
 },
-async (danuwamd, mek, m, {
-    from, reply
-}) => {
+async (conn, mek, m, { from, reply }) => {
     try {
 
-        await sendButtons(danuwamd, from, {
-            image: { url: config.ALIVE_IMG }, // make sure image URL is valid
-            text: config.ALIVE_MSG || "*I'm Alive Now!* 🤖",
+        await conn.sendMessage(from, {
+            text: config.ALIVE_MSG || "*🤖 I'm Alive Now!*",
             footer: "Select an option below",
-            buttons: [
+            title: "Bot Status",
+            buttonText: "Click Here",
+            sections: [
                 {
-                    prefix: '.', // ✅ FIXED
-                    id: '.ping',
-                    text: 'Ping'
-                },
-                {
-                    prefix: '.', // ✅ FIXED
-                    id: '.menu',
-                    text: 'Menu'
+                    title: "Main Options",
+                    rows: [
+                        {
+                            title: "Ping",
+                            description: "Check bot speed",
+                            rowId: ".ping"
+                        },
+                        {
+                            title: "Menu",
+                            description: "Open bot menu",
+                            rowId: ".menu"
+                        }
+                    ]
                 }
             ]
-        });
+        }, { quoted: mek });
 
     } catch (e) {
         console.log("Alive Command Error:", e);
