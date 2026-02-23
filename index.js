@@ -350,4 +350,6 @@ app.get("/", (req, res) => {
   res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
 });
 
-app.listen(port, () => console.log(`𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅`));
+app.listen(port, () => console.log(`𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅`)
+});
+app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
