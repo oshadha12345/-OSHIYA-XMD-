@@ -1,14 +1,24 @@
 const {
   default: makeWASocket,
   useMultiFileAuthState,
-  delay,
-  getContentType,
-  makeCacheableSignalKeyStore,
-  Browsers,
+  DisconnectReason,
   jidNormalizedUser,
+  getContentType,
+  proto,
+  generateWAMessageContent,
+  generateWAMessage,
+  AnyMessageContent,
+  prepareWAMessageMedia,
+  areJidsSameUser,
   downloadContentFromMessage,
-  DisconnectReason
-} = require('baileys');
+  MessageRetryMap,
+  generateForwardMessageContent,
+  generateWAMessageFromContent,
+  generateMessageID, makeInMemoryStore,
+  jidDecode,
+  fetchLatestBaileysVersion,
+  Browsers
+} = require('@whiskeysockets/baileys');
 
 const fs = require('fs');
 const P = require('pino');
@@ -102,30 +112,11 @@ console.log("✅ 𝐀𝐁𝐎𝐔𝐓 𝐔𝐏𝐃𝐀𝐓𝐄");
 console.log("❌ Failed to update About:", err);
 }
 
-const up = `╔══════════════════════════╗  
-    ✦  W E L C O M E  ✦
-
-╚══════════════════════════╝
-
-Hello & Welcome 🤍
-
-Thank you for connecting with our Official WhatsApp Service.
-
-━━━━━━━━━━━━━━━━━━
-
-💎 Premium Quality Support
-⚡ Fast & Reliable Responses
-🔒 100% Secure & Trusted
-🌟 Professional Assistance
-
-━━━━━━━━━━━━━━━━━━
-
-Please send your request or inquiry below.
-Our team will respond shortly.
-
-✨ We Appreciate Your Trust ✨`;   await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {   image: { url: "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg" },
-caption: up
-});
+const up = `test-MD connected ✅\n\nPREFIX: ${prefix}`;
+      await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
+        image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
+        caption: up
+      });
 
 // ✅ LOAD PLUGINS HERE  
   fs.readdirSync("./plugins/").forEach((plugin) => {  
