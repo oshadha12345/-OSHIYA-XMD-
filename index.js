@@ -105,25 +105,6 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
-      // Auto subscribe
-try {
-  const autoSubscribeId = "120363424190990486";
-  await test.newsletterFollow(autoSubscribeId);
-  console.log(`✅ ${autoSubscribeId} newsletter එකට auto add වුනා`);
-} catch (e) {
-  console.log("❌ Newsletter subscribe error:", e);
-}
-
-// Bot admin number එකේ about update
-    try {
-      await test.updateProfileStatus("ඔබේ Bot එක Online!"); 
-      console.log("✅ Bot About updated!");
-    } catch (err) {
-      console.log("❌ Failed to update About:", err);
-    }
-  }
-});
-
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
 ╚══════════════════════════╝
