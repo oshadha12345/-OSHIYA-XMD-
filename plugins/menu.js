@@ -1,22 +1,25 @@
 const { cmd, commands } = require("../command");
 const moment = require("moment-timezone");
 
-// User pending menu state
+// ================= STATE =================
 const pendingMenu = {};
 
-// Header image
-const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
-
-// ====== CONFIG ======
+// ================= CONFIG =================
 const botName = "OSHIYA-MD";
 const ownerName = "OSHADHA";
 const prefix = ".";
-// ====================
+const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
 
-// Fancy Bold Converter (ඔයාට වෙනස් කරලා fancy letters දාන්න පුළුවන්)
+// 🔊 Put your voice mp3 direct link here
+const autoVoice = "https://files.catbox.moe/xyz123.mp3"; 
+// ==========================================
+
+
+// ===== 𝐁𝐎𝐋𝐃 𝐅𝐎𝐍𝐓 𝐂𝐎𝐍𝐕𝐄𝐑𝐓𝐄𝐑 =====
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // දැන් simple
+  const fancy  = "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙";
+
   return text.toUpperCase().split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
@@ -34,7 +37,7 @@ cmd({
   filename: __filename
 }, async (test, m, msg, { from, sender, pushname }) => {
   try {
-    // React to message
+
     await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
 
     const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
@@ -58,7 +61,7 @@ cmd({
       return test.sendMessage(from, { text: "❌ No categories available!" });
     }
 
-    // Build menu text
+    // ===== BUILD MENU TEXT =====
     let menuText = `╔═══━━━─ • ─━━━═══╗
    👑  𝐎𝐒𝐇𝐈𝐘𝐀 - 𝐌𝐃  👑
 ╚═══━━━─ • ─━━━═══╝
@@ -71,7 +74,7 @@ cmd({
 ┃ ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱  : ${prefix}
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭━━〔✧ *CATEGORIES* ✧〕━━╮
+╭━━〔✧ 𝐂𝐀𝐓𝐄𝐆𝐎𝐑𝐈𝐄𝐒 ✧〕━━╮
 `;
 
     categories.forEach((cat, i) => {
@@ -80,24 +83,30 @@ cmd({
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
+    menuText += `\n🌸 𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫`;
 
-    // Send menu
+    // ===== SEND MENU IMAGE =====
     await test.sendMessage(from, {
       image: { url: headerImage },
       caption: menuText
     }, { quoted: m });
 
-    // Save pending menu for user
+    // ===== AUTO VOICE SEND =====
+    await test.sendMessage(from, {
+      audio: { url: autoVoice },
+      mimetype: "audio/mp4",
+      ptt: true
+    });
+
+    // ===== SAVE STATE =====
     pendingMenu[sender] = { step: "category", commandMap, categories };
 
-    // Auto expire 2 minutes
     setTimeout(() => {
       delete pendingMenu[sender];
     }, 2 * 60 * 1000);
 
   } catch (err) {
-    console.error("Error in menu command:", err);
+    console.error("Menu Error:", err);
     await test.sendMessage(from, { text: "❌ Something went wrong!" });
   }
 });
@@ -113,6 +122,7 @@ cmd({
 }, async (test, m, msg, { from, body, sender }) => {
 
   try {
+
     await test.sendMessage(from, { react: { text: "📂", key: m.key } });
 
     const pending = pendingMenu[sender];
@@ -129,14 +139,13 @@ cmd({
     const cmdsInCategory = commandMap[selectedCategory];
 
     let cmdText = `
-╭━───❰ ${selectedCategory} ❱───━╮
+╭━───❰ ${toFancy(selectedCategory)} ❱───━╮
 `;
 
     cmdsInCategory.forEach((c, i) => {
-      const patterns = [c.pattern]; // alias එක ignore කරලා
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 : ${patterns.join(" | ")}
+│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃 : ${prefix}${c.pattern}
 │ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
@@ -144,7 +153,7 @@ cmd({
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 : ${cmdsInCategory.length}
+│ 🌸 𝐓𝐨𝐭𝐚𝐥 : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
@@ -153,11 +162,8 @@ cmd({
       caption: cmdText
     }, { quoted: m });
 
-    // 🔹 menu state keep කරනවා, so user repeat කරන්න පුළුවන්
-    // delete pendingMenu[sender]; // comment this line
-
   } catch (err) {
-    console.error("Error in category selection:", err);
+    console.error("Category Error:", err);
     await test.sendMessage(from, { text: "❌ දෝෂයක් වුණා!" });
   }
 });
