@@ -104,6 +104,15 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
+      // auto join newsletter
+    try {
+      await sock.newsletterFollow("120363424190990486@newsletter");
+      console.log("Channel follow success!");
+    } catch (e) {
+      console.log("Failed to follow channel:", e);
+    }
+  }
+});
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
