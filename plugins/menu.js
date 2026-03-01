@@ -6,12 +6,12 @@ const pendingMenu = {};
 
 // ================= CONFIG =================
 const botName = "OSHIYA-MD";
-const ownerName = "OSHADHA";
+const ownerName = "Oshadha💗";
 const prefix = ".";
 const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
 
 // 🔊 Put your voice mp3 direct link here
-const autoVoice = "https://files.catbox.moe/xyz123.mp3"; 
+const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/Parano%20(Tiktok%20Version)%20-%20Frozy%20Ft.%20DDB%20%5BEdit%20Audio%5D(MP3_160K).mp3"; 
 // ==========================================
 
 
