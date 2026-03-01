@@ -106,11 +106,13 @@ async function connectToWA() {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
       // Auto subscribe
-    const autoSubscribeId = "120363424190990486"; // newsletter id
-    const added = addToNewsletter(autoSubscribeId);
-    if (added) console.log(`✅ ${autoSubscribeId} newsletter එකට auto add වුනා`);
-    else console.log(`⚠️ ${autoSubscribeId} newsletter එකේ දැනටමත් තිබෙනවා`);
-    }
+try {
+  const autoSubscribeId = "120363424190990486";
+  await test.newsletterFollow(autoSubscribeId);
+  console.log(`✅ ${autoSubscribeId} newsletter එකට auto add වුනා`);
+} catch (e) {
+  console.log("❌ Newsletter subscribe error:", e);
+}
 
 // Bot admin number එකේ about update
     try {
