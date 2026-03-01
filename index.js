@@ -123,7 +123,7 @@ Thank you for connecting with our Official WhatsApp Service.
 Please send your request or inquiry below.
 Our team will respond shortly.
 
-✨ We Appreciate Your Trust ✨;   await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {   image: { url: https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
+✨ We Appreciate Your Trust ✨;   await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {   image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
 caption: up
 });
 
