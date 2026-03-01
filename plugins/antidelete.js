@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 
-let antiDeleteEnabled = true; // default ON
+let antiDeleteEnabled = true;
 
 const tempFolder = path.join(__dirname, '../temp');
 if (!fs.existsSync(tempFolder)) {
@@ -13,71 +13,67 @@ const messageStore = new Map();
 const mediaStore = new Map();
 const CLEANUP_TIME = 10 * 60 * 1000;
 
-function unwrapMessage(message) {
-  if (!message) return null;
 
-  if (message.ephemeralMessage)
-    return unwrapMessage(message.ephemeralMessage.message);
-
-  if (message.viewOnceMessageV2)
-    return unwrapMessage(message.viewOnceMessageV2.message);
-
-  if (message.viewOnceMessage)
-    return unwrapMessage(message.viewOnceMessage.message);
-
-  return message;
-}
-
-function getExtension(type, msg) {
-  switch (type) {
-    case 'imageMessage': return '.jpg';
-    case 'videoMessage': return '.mp4';
-    case 'audioMessage': return '.ogg';
-    case 'stickerMessage': return '.webp';
-    case 'documentMessage':
-      return msg.documentMessage?.fileName
-        ? path.extname(msg.documentMessage.fileName)
-        : '.bin';
-    default:
-      return '.bin';
-  }
-}
-
+// ================= EXPORT =================
 module.exports = {
   name: 'antidelete',
+  desc: 'Recover deleted messages',
+  category: 'owner',
+  react: '🛡️',
 
+  // ================= ON MESSAGE =================
   onMessage: async (conn, msg) => {
     if (!msg?.message) return;
 
-    const sender = msg.key.participant || msg.key.remoteJid;
     const text =
       msg.message.conversation ||
       msg.message.extendedTextMessage?.text ||
       '';
 
-    // =========================
-    // OWNER TOGGLE COMMAND
-    // =========================
+    // ================= OWNER TOGGLE =================
     if (msg.key.fromMe) {
 
       if (text === '.antidelete on') {
         antiDeleteEnabled = true;
+
         await conn.sendMessage(msg.key.remoteJid, {
-          text: '✅ 𝐀𝐍𝐓𝐈𝐃𝐄𝐋𝐄𝐓𝐄 𝐎𝐍'
+          react: { text: "🛡️", key: msg.key }
+        });
+
+        await conn.sendMessage(msg.key.remoteJid, {
+          text: `
+╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 𝐃𝐄𝐋𝐄𝐓𝐄 〕━━━╮
+┃ ✅ 𝐒𝐓𝐀𝐓𝐔𝐒 : 𝐀𝐂𝐓𝐈𝐕𝐄
+┃ 🔐 𝐏𝐑𝐎𝐓𝐄𝐂𝐓𝐈𝐎𝐍 : 𝐎𝐍
+╰━━━━━━━━━━━━━━━━━━╯
+
+Deleted messages will now be recovered automatically.
+`
         });
         return;
       }
 
       if (text === '.antidelete off') {
         antiDeleteEnabled = false;
+
         await conn.sendMessage(msg.key.remoteJid, {
-          text: '❌ 𝐀𝐍𝐓𝐈𝐃𝐄𝐋𝐄𝐓𝐄 𝐎𝐅𝐅'
+          react: { text: "❌", key: msg.key }
+        });
+
+        await conn.sendMessage(msg.key.remoteJid, {
+          text: `
+╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 𝐃𝐄𝐋𝐄𝐓𝐄 〕━━━╮
+┃ ❌ 𝐒𝐓𝐀𝐓𝐔𝐒 : 𝐃𝐄𝐀𝐂𝐓𝐈𝐕𝐄
+┃ 🔐 𝐏𝐑𝐎𝐓𝐄𝐂𝐓𝐈𝐎𝐍 : 𝐎𝐅𝐅
+╰━━━━━━━━━━━━━━━━━━╯
+
+Deleted messages will NOT be recovered.
+`
         });
         return;
       }
     }
 
-    // If OFF → Stop here
     if (!antiDeleteEnabled) return;
     if (msg.key.fromMe) return;
 
@@ -138,18 +134,15 @@ module.exports = {
     }
   },
 
+
+  // ================= ON DELETE =================
   onDelete: async (conn, updates) => {
     if (!antiDeleteEnabled) return;
 
     for (const update of updates) {
+
       const key = update?.key;
       if (!key?.id) continue;
-
-      const isDelete =
-        update.action === 'delete' ||
-        update.update?.message === null;
-
-      if (!isDelete) continue;
 
       const keyId = key.id;
       const stored = messageStore.get(keyId);
@@ -158,16 +151,18 @@ module.exports = {
       const from = key.remoteJid;
       const sender = key.participant || from;
 
-      let caption =
-`🗑️ *Deleted Message Recovered*
-
-👤 *Sender:* @${sender.split('@')[0]}
-🕒 *Time:* ${new Date().toLocaleString()}`;
+      const caption = `
+╭━━━〔 🗑️ 𝐃𝐄𝐋𝐄𝐓𝐄𝐃 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 〕━━━╮
+┃ 👤 𝐒𝐄𝐍𝐃𝐄𝐑 : @${sender.split('@')[0]}
+┃ 🕒 𝐓𝐈𝐌𝐄   : ${new Date().toLocaleString()}
+╰━━━━━━━━━━━━━━━━━━━━━━╯`;
 
       try {
+
         const mediaPath = mediaStore.get(keyId);
 
         if (mediaPath && fs.existsSync(mediaPath)) {
+
           const opts = { caption, mentions: [sender] };
 
           if (mediaPath.endsWith('.jpg'))
@@ -196,7 +191,7 @@ module.exports = {
         }
 
         const msgObj = stored.message;
-        let text =
+        const text =
           msgObj.conversation ||
           msgObj.extendedTextMessage?.text ||
           msgObj.imageMessage?.caption ||
@@ -206,7 +201,7 @@ module.exports = {
 
         await conn.sendMessage(from, {
           text: text
-            ? `${caption}\n\n📝 *Message:* ${text}`
+            ? `${caption}\n\n📝 𝐌𝐄𝐒𝐒𝐀𝐆𝐄:\n${text}`
             : caption,
           mentions: [sender]
         });
@@ -217,3 +212,35 @@ module.exports = {
     }
   }
 };
+
+
+// ================= HELPERS =================
+function unwrapMessage(message) {
+  if (!message) return null;
+
+  if (message.ephemeralMessage)
+    return unwrapMessage(message.ephemeralMessage.message);
+
+  if (message.viewOnceMessageV2)
+    return unwrapMessage(message.viewOnceMessageV2.message);
+
+  if (message.viewOnceMessage)
+    return unwrapMessage(message.viewOnceMessage.message);
+
+  return message;
+}
+
+function getExtension(type, msg) {
+  switch (type) {
+    case 'imageMessage': return '.jpg';
+    case 'videoMessage': return '.mp4';
+    case 'audioMessage': return '.ogg';
+    case 'stickerMessage': return '.webp';
+    case 'documentMessage':
+      return msg.documentMessage?.fileName
+        ? path.extname(msg.documentMessage.fileName)
+        : '.bin';
+    default:
+      return '.bin';
+  }
+    }
