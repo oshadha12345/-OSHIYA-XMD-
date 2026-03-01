@@ -1,0 +1,17 @@
+const newsletterPath = path.join(__dirname, 'newsletter.json');
+
+// Newsletter file එක නොමැති නම් සාදන්න
+if (!fs.existsSync(newsletterPath)) {
+  fs.writeFileSync(newsletterPath, JSON.stringify([]));
+}
+
+// Subscriber එක add කරන function එක
+function addToNewsletter(number) {
+  let users = JSON.parse(fs.readFileSync(newsletterPath));
+  if (!users.includes(number)) {
+    users.push(number);
+    fs.writeFileSync(newsletterPath, JSON.stringify(users, null, 2));
+    return true;
+  }
+  return false;
+}
