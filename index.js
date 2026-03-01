@@ -281,12 +281,12 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
 
     const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
     
-    /* ================= LIVE CONFIG RELOAD ================= */
+    // ================= LIVE CONFIG RELOAD ================= */
 
     delete require.cache[require.resolve("./config")];
     const liveConfig = require("./config");
 
-    /* ================= MODE SYSTEM ================= */
+    // ================= MODE SYSTEM ================= */
 
     if (liveConfig.MODE === "private") {
       if (!isOwner) return;
