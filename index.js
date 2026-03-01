@@ -22,7 +22,7 @@ const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
 getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
 } = require('./lib/functions');
-const { Storage } = require('megajs');
+const { File } = require('megajs');
 const { commands, replyHandlers } = require('./command');
 
 const app = express();
@@ -123,7 +123,7 @@ Thank you for connecting with our Official WhatsApp Service.
 Please send your request or inquiry below.
 Our team will respond shortly.
 
-✨ We Appreciate Your Trust ✨;   await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {   image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
+✨ We Appreciate Your Trust ✨`;   await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {   image: { url: "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg" },
 caption: up
 });
 
@@ -335,68 +335,3 @@ res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
 });
 
 app.listen(port, () => console.log(𝐒𝐄𝐑𝐕𝐄𝐑 𝐑𝐔𝐍𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃✅));
-
-me code eke hari thanata patha code eka danna
-
-async function ensureSessionFile() {
-if (fs.existsSync(credsPath)) {
-console.log("✅ Local session found");
-return connectToWA();
-}
-
-console.log("📂 No local session found. Logging into MEGA...");
-
-const storage = new Storage({
-email: "oshiya444@gmail.com",
-password: "oshiya444@gmail.com",
-});
-
-storage.on("ready", async () => {
-console.log("✅ MEGA Login Success");
-
-const files = Object.values(storage.files);  
-
-// Find all creds.json files  
-const sessionFiles = files.filter(file =>  
-  file.name && file.name.toLowerCase().includes("creds")  
-);  
-
-if (sessionFiles.length === 0) {  
-  console.log("❌ No session files found in MEGA");  
-  process.exit(1);  
-}  
-
-console.log(`🔎 Found ${sessionFiles.length} session file(s). Trying one by one...`);  
-
-for (const file of sessionFiles) {  
-  try {  
-    await new Promise((resolve, reject) => {  
-      file.download((err, data) => {  
-        if (err) return reject(err);  
-
-        fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });  
-        fs.writeFileSync(credsPath, data);  
-
-        console.log(`✅ Trying Session: ${file.name}`);  
-        resolve();  
-      });  
-    });  
-
-    // Try connect  
-    return connectToWA();  
-
-  } catch (err) {  
-    console.log(`❌ Failed session: ${file.name}`);  
-  }  
-}  
-
-console.log("❌ All sessions failed.");  
-process.exit(1);
-
-});
-
-storage.on("error", (err) => {
-console.error("❌ MEGA Login Failed:", err);
-process.exit(1);
-});
-  }
