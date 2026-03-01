@@ -6,25 +6,27 @@ const pendingMenu = {};
 
 // ================= CONFIG =================
 const botName = "OSHIYA-MD";
-const ownerName = "Oshadha💗";
+const ownerName = "OSHADHA";
 const prefix = ".";
+
 const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
 
-// 🔊 Put your voice mp3 direct link here
-const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/Parano%20(Tiktok%20Version)%20-%20Frozy%20Ft.%20DDB%20%5BEdit%20Audio%5D(MP3_160K).mp3"; 
+// 🔊 Put your voice direct mp3 link here
+const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/Parano%20(Tiktok%20Version)%20-%20Frozy%20Ft.%20DDB%20%5BEdit%20Audio%5D(MP3_160K).mp3";
 // ==========================================
 
 
-// ===== 𝐁𝐎𝐋𝐃 𝐅𝐎𝐍𝐓 𝐂𝐎𝐍𝐕𝐄𝐑𝐓𝐄𝐑 =====
+// ===== ᴀʙᴄ SMALL CAPS CONVERTER =====
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙";
+  const fancy  = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ";
 
   return text.toUpperCase().split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
   }).join("");
 }
+
 
 // ========================
 // ===== MAIN MENU =======
@@ -36,6 +38,7 @@ cmd({
   category: "main",
   filename: __filename
 }, async (test, m, msg, { from, sender, pushname }) => {
+
   try {
 
     await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
@@ -61,42 +64,41 @@ cmd({
       return test.sendMessage(from, { text: "❌ No categories available!" });
     }
 
+    // ===== AUTO VOICE SEND FIRST =====
+    await test.sendMessage(from, {
+      audio: { url: autoVoice },
+      mimetype: "audio/mp4",
+      ptt: false
+    });
+
     // ===== BUILD MENU TEXT =====
     let menuText = `╔═══━━━─ • ─━━━═══╗
-   👑  𝐎𝐒𝐇𝐈𝐘𝐀 - 𝐌𝐃  👑
+   👑  ${toFancy(botName)}  👑
 ╚═══━━━─ • ─━━━═══╝
 
-╭━━━〔 👤 𝐈𝐍𝐅𝐎 〕━━━╮
-┃ 👑 𝐎𝐰𝐧𝐞𝐫   : ${ownerName}
-┃ 👤 𝐔𝐬𝐞𝐫    : ${pushname}
-┃ 📅 𝐃𝐚𝐭𝐞    : ${date}
-┃ ⏰ 𝐓𝐢𝐦𝐞    : ${time}
-┃ ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱  : ${prefix}
+╭━━━〔 👤 ɪɴꜰᴏ 〕━━━╮
+┃ 👑 ᴏᴡɴᴇʀ   : ${ownerName}
+┃ 👤 ᴜꜱᴇʀ    : ${pushname}
+┃ 📅 ᴅᴀᴛᴇ    : ${date}
+┃ ⏰ ᴛɪᴍᴇ    : ${time}
+┃ ⚙️ ᴘʀᴇꜰɪx  : ${prefix}
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭━━〔✧ 𝐂𝐀𝐓𝐄𝐆𝐎𝐑𝐈𝐄𝐒 ✧〕━━╮
+╭━━〔✧ ᴄᴀᴛᴇɢᴏʀɪᴇꜱ ✧〕━━╮
 `;
 
     categories.forEach((cat, i) => {
-      const styled = toFancy(cat);
-      menuText += `│ ${i + 1}. ${styled} 〔 ${commandMap[cat].length} 〕\n`;
+      menuText += `│ ${i + 1}. ${toFancy(cat)} 〔 ${commandMap[cat].length} 〕\n`;
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n🌸 𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫`;
+    menuText += `\n🌷 ʀᴇᴘʟʏ ᴡɪᴛʜ ᴄᴀᴛᴇɢᴏʀʏ ɴᴜᴍʙᴇʀ ᴛᴏ ᴇxᴘʟᴏʀᴇ`;
 
-    // ===== SEND MENU IMAGE =====
+    // ===== SEND MENU AFTER VOICE =====
     await test.sendMessage(from, {
       image: { url: headerImage },
       caption: menuText
     }, { quoted: m });
-
-    // ===== AUTO VOICE SEND =====
-    await test.sendMessage(from, {
-      audio: { url: autoVoice },
-      mimetype: "audio/mp4",
-      ptt: true
-    });
 
     // ===== SAVE STATE =====
     pendingMenu[sender] = { step: "category", commandMap, categories };
@@ -110,6 +112,7 @@ cmd({
     await test.sendMessage(from, { text: "❌ Something went wrong!" });
   }
 });
+
 
 // ========================
 // ===== CATEGORY SELECT =====
@@ -138,22 +141,20 @@ cmd({
     const selectedCategory = categories[index];
     const cmdsInCategory = commandMap[selectedCategory];
 
-    let cmdText = `
-╭━───❰ ${toFancy(selectedCategory)} ❱───━╮
-`;
+    let cmdText = `╭━───❰ ${toFancy(selectedCategory)} ❱───━╮\n`;
 
     cmdsInCategory.forEach((c, i) => {
       cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃 : ${prefix}${c.pattern}
-│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
+│ ✧ ᴄᴏᴍᴍᴀɴᴅ : ${prefix}${c.pattern}
+│ ✧ ɪɴꜰᴏ    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
     });
 
     cmdText += `
 ╭━━━━━━━━━━━━━━━━━━╮
-│ 🌸 𝐓𝐨𝐭𝐚𝐥 : ${cmdsInCategory.length}
+│ 🌸 ᴛᴏᴛᴀʟ : ${cmdsInCategory.length}
 ╰━━━━━━━━━━━━━━━━━━╯
 `;
 
