@@ -280,6 +280,29 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     const isAdmins = isGroup ? groupAdmins.includes(sender) : false;
 
     const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
+    
+    /* ================= LIVE CONFIG RELOAD ================= */
+
+    delete require.cache[require.resolve("./config")];
+    const liveConfig = require("./config");
+
+    /* ================= MODE SYSTEM ================= */
+
+    if (liveConfig.MODE === "private") {
+      if (!isOwner) return;
+    }
+
+    if (liveConfig.MODE === "inbox") {
+      if (isGroup) return;
+    }
+
+    if (liveConfig.MODE === "group") {
+      if (!isGroup) return;
+    }
+
+    if (liveConfig.MODE === "public") {
+      // Work everywhere
+    }
 
     if (isCmd) {
       const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
