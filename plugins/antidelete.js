@@ -152,9 +152,10 @@ module.exports = {
       const sender = key.participant || from;
 
       const caption = `
-╭━━━〔 🗑️ 𝐃𝐄𝐋𝐄𝐓𝐄𝐃 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 〕━━━╮
+╭━━━〔🗑️ 𝐃𝐄𝐋𝐄𝐓𝐄𝐃〕━━━╮
 ┃ 👤 𝐒𝐄𝐍𝐃𝐄𝐑 : @${sender.split('@')[0]}
-┃ 🕒 𝐓𝐈𝐌𝐄   : ${new Date().toLocaleString()}
+┃ 🕒 𝐓𝐈𝐌𝐄   : ${new
+Date().toLocaleString()}
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`;
 
       try {
