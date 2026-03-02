@@ -13,7 +13,8 @@ AUTO_STATUS_SEND: process.env.AUTO_STATUS_SEND || "true",
 MODE: "inbox",
 AUTO_STATUS_SEEN: 'true',
 AUTO_STATUS_REACT: 'true',
-NEWSLETTER_JID: "120363424190990486@newsletter", 
+NEWSLETTER_JID: "120363424190990486@newsletter",
+GROUP_INVITE_LINK: "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib",
 
 
 
