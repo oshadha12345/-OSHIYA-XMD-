@@ -59,7 +59,7 @@ cmd(
       if (!body) return;
 
       // Private mode check
-      if (config.MODE === "private" && !mek.key.fromMe) return;
+      if (config.MODE === "public" && !mek.key.fromMe) return;
 
       const text = body.toLowerCase();
 
