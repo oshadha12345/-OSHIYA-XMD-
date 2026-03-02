@@ -9,7 +9,7 @@
     "restart": "pm2 restart 💫𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃💫"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "npm:gifted-baileys",
+    "@whiskeysockets/baileys": "npm:baileys-mod",
     "api-dylux": "^1.8.5",
     "gifted-btns": "^1.0.0",
     "axios": "^1.9.0",
