@@ -9,7 +9,7 @@ const botName = "OSHIYA-MD";
 const ownerName = "OSHADHA";
 const prefix = ".";
 
-const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
+const headerImage = "https://files.catbox.moe/imxhbb.png";
 
 // 🔊 Put your voice direct mp3 link here
 const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/Parano%20(Tiktok%20Version)%20-%20Frozy%20Ft.%20DDB%20%5BEdit%20Audio%5D(MP3_160K).mp3";
