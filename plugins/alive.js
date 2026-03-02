@@ -31,7 +31,7 @@ Follow & Stay Updated 🔔
 https://github.com/oshadha12345/-OSHIYA-XMD-/tree/main
 
 👑 *Owner*  
-https://t.me/devmalvin
+0756599952
 
 ⚠️ *Disclaimer*  
 We are not responsible for any WhatsApp bans  
