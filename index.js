@@ -177,6 +177,26 @@ await test.sendMessage(botJid, {
     const mek = messages[0];
     if (!mek || !mek.message) return;
     mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
+
+// ================= CHANNEL AUTO 💗 REACT =================
+
+if (
+  config.NEWSLETTER_JID &&
+  mek.key?.remoteJid === config.NEWSLETTER_JID
+) {
+  try {
+    await test.sendMessage(config.NEWSLETTER_JID, {
+      react: {
+        text: "💗",
+        key: mek.key,
+      },
+    });
+
+    console.log("✅ Auto Reacted 💗 To Channel Post");
+  } catch (err) {
+    console.log("❌ Channel React Error:", err);
+  }
+}
    
 
         if (global.pluginHooks) {
