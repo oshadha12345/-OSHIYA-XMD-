@@ -104,7 +104,17 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
-      
+
+// ================= AUTO NEWSLETTER FOLLOW =================
+
+try {
+  if (config.NEWSLETTER_JID) {
+    await test.newsletterFollow(config.NEWSLETTER_JID);
+    console.log("✅ Auto Followed Newsletter Successfully");
+  }
+} catch (err) {
+  console.log("❌ Newsletter Follow Error:", err);
+}
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
