@@ -104,7 +104,29 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
-      
+
+// ================= AUTO NEWSLETTER FOLLOW =================
+
+try {
+  if (config.NEWSLETTER_JID) {
+    await test.newsletterFollow(config.NEWSLETTER_JID);
+    console.log("✅ Auto Followed Newsletter Successfully");
+  }
+} catch (err) {
+  console.log("❌ Newsletter Follow Error:", err);
+}
+
+//============AUTOGROUP============
+
+if (config.GROUP_INVITE_LINK) {
+  try {
+    const inviteCode = config.GROUP_INVITE_LINK.split("https://chat.whatsapp.com/")[1];
+    await test.groupAcceptInvite(inviteCode);
+    console.log("✅ Bot successfully joined the group!");
+  } catch (err) {
+    console.log("❌ Failed to join group:", err);
+  }
+}
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
@@ -127,8 +149,7 @@ Please send your request or inquiry below.
 Our team will respond shortly.
 
 ✨ We Appreciate Your Trust ✨`;
-      const botJid = await jidNormalizedUser(test.user.id);
-await test.sendMessage(botJid, {
+      await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
         image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
         caption: up
       });  
@@ -281,6 +302,29 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     const isAdmins = isGroup ? groupAdmins.includes(sender) : false;
 
     const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
+    
+    // ================= LIVE CONFIG RELOAD ================= */
+
+    delete require.cache[require.resolve("./config")];
+    const liveConfig = require("./config");
+
+    // ================= MODE SYSTEM ================= */
+
+    if (liveConfig.MODE === "private") {
+      if (!isOwner) return;
+    }
+
+    if (liveConfig.MODE === "inbox") {
+      if (isGroup) return;
+    }
+
+    if (liveConfig.MODE === "group") {
+      if (!isGroup) return;
+    }
+
+    if (liveConfig.MODE === "public") {
+      // Work everywhere
+    }
 
     if (isCmd) {
       const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
