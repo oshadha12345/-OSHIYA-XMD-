@@ -42,12 +42,12 @@ module.exports = {
 
         await conn.sendMessage(msg.key.remoteJid, {
           text: `
-╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 𝐃𝐄𝐋𝐄𝐓𝐄 〕━━━╮
+╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 〕━━━╮
 ┃ ✅ 𝐒𝐓𝐀𝐓𝐔𝐒 : 𝐀𝐂𝐓𝐈𝐕𝐄
 ┃ 🔐 𝐏𝐑𝐎𝐓𝐄𝐂𝐓𝐈𝐎𝐍 : 𝐎𝐍
 ╰━━━━━━━━━━━━━━━━━━╯
 
-Deleted messages will now be recovered automatically.
+> Deleted messages will now be recovered automatically
 `
         });
         return;
@@ -62,12 +62,12 @@ Deleted messages will now be recovered automatically.
 
         await conn.sendMessage(msg.key.remoteJid, {
           text: `
-╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 𝐃𝐄𝐋𝐄𝐓𝐄 〕━━━╮
+╭━━━〔 🛡️ 𝐀𝐍𝐓𝐈 〕━━━╮
 ┃ ❌ 𝐒𝐓𝐀𝐓𝐔𝐒 : 𝐃𝐄𝐀𝐂𝐓𝐈𝐕𝐄
 ┃ 🔐 𝐏𝐑𝐎𝐓𝐄𝐂𝐓𝐈𝐎𝐍 : 𝐎𝐅𝐅
 ╰━━━━━━━━━━━━━━━━━━╯
 
-Deleted messages will NOT be recovered.
+> Deleted messages will NOT be recovered
 `
         });
         return;
