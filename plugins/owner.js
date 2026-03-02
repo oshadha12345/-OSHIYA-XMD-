@@ -1,5 +1,3 @@
-
-
 const { cmd } = require('../command');
 
 cmd({
@@ -14,7 +12,7 @@ async (conn, mek, m, { from }) => {
     try {
         // Owner's contact info
         const ownerNumber = '+94756599952'; // Replace this with the actual owner number
-        const ownerName = 'OSHIYA'; // Replace this with the owner's name
+        const ownerName = '𝐎𝐬𝐡𝐢𝐲𝐚🔥'; // Replace this with the owner's name
         const organization = 'Oshiya Botz'; // Optional: replace with the owner's organization
 
         // Create a vCard (contact card) for the owner
