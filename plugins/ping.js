@@ -10,8 +10,8 @@ cmd(
   },
   async (danuwa, mek, m, { reply }) => {
     const start = Date.now();
-    await reply("🏓 Pinging...");
+    await reply("🏓 *Pinging*...");
     const end = Date.now();
-    await reply(`🏓 Pong! Response time: *${end - start}ms*`);
+    await reply(`🏓 *Pong*! *${end - start}ms*`);
   }
 );
