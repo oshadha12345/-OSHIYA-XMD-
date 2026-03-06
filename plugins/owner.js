@@ -2,7 +2,7 @@ const { cmd } = require('../command');
 
 cmd({
     pattern: "owner",
-    react: "👑", // Reaction emoji when the command is triggered
+    react: "👑",
     alias: ["oshiya"],
     desc: "Get owner number",
     category: "main",
@@ -10,38 +10,30 @@ cmd({
 }, 
 async (conn, mek, m, { from }) => {
     try {
-        // Owner's contact info
-        const ownerNumber = '+94756599952'; // Replace this with the actual owner number
-        const ownerName = '𝐎𝐬𝐡𝐢𝐲𝐚🔥'; // Replace this with the owner's name
-        const organization = 'Oshiya Botz'; // Optional: replace with the owner's organization
 
-        // Create a vCard (contact card) for the owner
+        const ownerNumber = '+94756599952';
+        const ownerName = '𝐎𝐬𝐡𝐢𝐲𝐚🔥';
+        const organization = 'Oshiya Botz';
+
         const vcard = 'BEGIN:VCARD\n' +
                       'VERSION:3.0\n' +
-                      `FN:${ownerName}\n` +  // Full Name
-                      `ORG:${organization};\n` +  // Organization (Optional)
-                      `TEL;type=CELL;type=VOICE;waid=${ownerNumber.replace('+', '')}:${ownerNumber}\n` +  // WhatsApp ID and number
+                      `FN:${ownerName}\n` +
+                      `ORG:${organization};\n` +
+                      `TEL;type=CELL;type=VOICE;waid=${ownerNumber.replace('+', '')}:${ownerNumber}\n` +
                       'END:VCARD';
 
-        // Send the vCard first
-        const sentVCard = await conn.sendMessage(from, {
+        // Send only the vCard
+        await conn.sendMessage(from, {
             contacts: {
                 displayName: ownerName,
                 contacts: [{ vcard }]
-            }
-        });
-
-        // Send a reply message that references the vCard
-        await conn.sendMessage(from, {
-            text: `This is the owner's contact: ${ownerName}`,
-            contextInfo: {
-                mentionedJid: [ownerNumber.replace('+94756599952') + '+94756599952@s.whatsapp.net'], // Mention the owner
-                quotedMessageId: sentVCard.key.id // Reference the vCard message
             }
         }, { quoted: mek });
 
     } catch (error) {
         console.error(error);
-        await conn.sendMessage(from, { text: 'Sorry, there was an error fetching the owner contact.' }, { quoted: mek });
-    }
+        await conn.sendMessage(from, { 
+            text: 'Sorry, there was an error fetching the owner contact.' 
+        }, { quoted: mek });
+    }
 });
