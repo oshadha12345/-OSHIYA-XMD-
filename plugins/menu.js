@@ -5,7 +5,7 @@ const moment = require("moment-timezone");
 const pendingMenu = {};
 
 // ================= CONFIG =================
-const botName = "OSHIYA-MD";
+const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1😼";
 const ownerName = "OSHADHA";
 const prefix = ".";
 
