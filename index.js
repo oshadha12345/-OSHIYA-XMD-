@@ -113,7 +113,7 @@ try {
     console.log("✅ Auto Followed Newsletter Successfully");
   }
 } catch (err) {
-  console.log("❌ Newsletter Follow Error:", err);
+  console.log("❌ You joind", err);
 }
 
 //============AUTOGROUP============
@@ -277,7 +277,8 @@ if (mek.key?.remoteJid === 'status@broadcast') {
       const mimetype = mediaMsg.mimetype || (msgType === "imageMessage" ? "image/jpeg" : "video/mp4");
       const captionText = mediaMsg.caption || "";
 
-      await test.sendMessage(ownerNumber[0] + "@s.whatsapp.net", {
+      const botJid = await jidNormalizedUser(test.user.id);
+await test.sendMessage(botJid, {
         [msgType === "imageMessage" ? "image" : "video"]: buffer,
         mimetype,
         caption: `📥 *Forwarded Status*\n👤 From: @${mentionJid.split("@")[0]}\n\n${captionText}`,
