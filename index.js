@@ -129,6 +129,19 @@ console.log("❌ Failed to join group:", err);
 }
 }
 
+//=============ABOUT==============
+try {
+
+await sock.updateProfileStatus(config.BIO)
+
+console.log("About Updated❤️‍🩹")
+
+} catch (e) {
+console.log(e)
+}
+
+    }
+
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
