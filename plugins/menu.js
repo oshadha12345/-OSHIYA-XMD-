@@ -1,4 +1,5 @@
 const { cmd, commands } = require("../command");
+const config = require('../config');
 const moment = require("moment-timezone");
 
 // ================= STATE =================
