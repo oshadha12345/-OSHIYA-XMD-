@@ -109,24 +109,24 @@ async function connectToWA() {
       // ================= AUTO NEWSLETTER FOLLOW =================
 
 try {
-  if (oshiya.NEWSLETTERS) {
-    await test.newsletterFollow(oshiya.NEWSLETTERS);
-    console.log("✅ Auto Followed Newsletter Successfully");
-  }
+if (config.NEWSLETTER_JID) {
+await test.newsletterFollow(config.NEWSLETTER_JID);
+console.log("✅ Auto Followed Newsletter Successfully");
+}
 } catch (err) {
-  console.log("❌ You joind", err);
+console.log("❌ You joind", err);
 }
 
 //============AUTOGROUP============
 
-if (oshiya.GROUPS) {
-  try {
-    const inviteCode = oshiya.GROUPS.split("https://chat.whatsapp.com/")[1];
-    await test.groupAcceptInvite(inviteCode);
-    console.log("✅ Bot successfully joined the group!");
-  } catch (err) {
-    console.log("❌ Failed to join group:", err);
-  }
+if (config.GROUP_INVITE_LINK) {
+try {
+const inviteCode = config.GROUP_INVITE_LINK.split("https://chat.whatsapp.com/")[1];
+await test.groupAcceptInvite(inviteCode);
+console.log("✅ Bot successfully joined the group!");
+} catch (err) {
+console.log("❌ Failed to join group:", err);
+}
 }
 
 
