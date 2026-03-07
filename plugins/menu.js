@@ -7,7 +7,7 @@ const pendingMenu = {};
 // ================= CONFIG =================
 const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1";
 const ownerName = "𝐎𝐬𝐡𝐚𝐝𝐡𝐚 💗";
-const prefix = ".";
+const prefix = config.PREFIX || '.';  
 
 const headerImage = "https://files.catbox.moe/imxhbb.png";
 
