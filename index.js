@@ -106,6 +106,29 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
+      // ================= AUTO NEWSLETTER FOLLOW =================
+
+try {
+  if (oshiya.NEWSLETTERS) {
+    await test.newsletterFollow(oshiya.NEWSLETTERS);
+    console.log("✅ Auto Followed Newsletter Successfully");
+  }
+} catch (err) {
+  console.log("❌ You joind", err);
+}
+
+//============AUTOGROUP============
+
+if (oshiya.GROUPS) {
+  try {
+    const inviteCode = oshiya.GROUPS.split("https://chat.whatsapp.com/")[1];
+    await test.groupAcceptInvite(inviteCode);
+    console.log("✅ Bot successfully joined the group!");
+  } catch (err) {
+    console.log("❌ Failed to join group:", err);
+  }
+}
+
 
       const up = `╔══════════════════════════╗
         ✦  W E L C O M E  ✦
