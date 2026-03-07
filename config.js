@@ -11,7 +11,7 @@ BOT_NAME: process.env.BOT_NAME || "OSHIYA😾",
 BOT_OWNER: '94725364886',  // Replace with the owner's phone number
 AUTO_STATUS_SEND: process.env.AUTO_STATUS_SEND || "false",
 MODE: "public",
-PREFIX: ".",
+PREFIX: "💥",
 AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
 NEWSLETTER_JID: "120363424190990486@newsletter",
