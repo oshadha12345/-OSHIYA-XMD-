@@ -1,74 +1,51 @@
 const { cmd } = require('../command')
+const fs = require('fs')
+const path = require('path')
 const config = require('../config')
 
-cmd({
-    pattern: "AUTO_STATUS_SEND",
-    category: "owner",
-    filename: __filename
-},
-async (conn, mek, m, { from, args, reply, isOwner }) => {
+// Path to config.js
+const configFile = path.join(__dirname, '../config.js')
 
-if (!isOwner) return reply("Owner only command")
-
-if (!args[0]) return reply("Use true or false")
-
-let value = args[0].toLowerCase()
-
-if (value === "true") {
-    config.AUTO_STATUS_SEND = true
-} else if (value === "false") {
-    config.AUTO_STATUS_SEND = false
-} else {
-    return reply("Use true or false")
+// Function to save updated config to file
+function saveConfig() {
+    fs.writeFileSync(configFile, 'module.exports = ' + JSON.stringify(config, null, 4))
 }
 
-reply(`AUTO_STATUS_SEND changed to ${config.AUTO_STATUS_SEND}`)
-})
-
+// Generic handler for AUTO_STATUS commands
 cmd({
-    pattern: "AUTO_STATUS_SEEN",
+    pattern: "AUTO_STATUS_(SEND|SEEN|REACT)",
+    react: "💥",
     category: "owner",
     filename: __filename
-},
-async (conn, mek, m, { from, args, reply, isOwner }) => {
+}, async (conn, mek, m, { args, reply, isOwner }) => {
+    if (!isOwner) return reply("Owner only command")
+    if (!args[0]) return reply("Use true or false")
 
-if (!isOwner) return reply("Owner only command")
+    // Extract type: SEND, SEEN, REACT
+    let type = m.text.match(/AUTO_STATUS_(SEND|SEEN|REACT)/)[1]
 
-if (!args[0]) return reply("Use true or false")
+    // Validate argument
+    let value = args[0].toLowerCase()
+    if (value !== "true" && value !== "false") return reply("Use true or false")
 
-let value = args[0].toLowerCase()
+    // Update config
+    config[`AUTO_STATUS_${type}`] = value === "true"
+    saveConfig() // Save to config.js
 
-if (value === "true") {
-    config.AUTO_STATUS_SEEN = true
-} else if (value === "false") {
-    config.AUTO_STATUS_SEEN = false
-} else {
-    return reply("Use true or false")
-}
+    // Optional: apply immediately if your bot supports these
+    if (conn && conn.setAutoStatus) {
+        switch (type) {
+            case "SEND":
+                conn.setAutoStatus?.(config.AUTO_STATUS_SEND)
+                break
+            case "SEEN":
+                conn.setAutoSeen?.(config.AUTO_STATUS_SEEN)
+                break
+            case "REACT":
+                conn.setAutoReact?.(config.AUTO_STATUS_REACT)
+                break
+        }
+    }
 
-reply(`AUTO_STATUS_SEEN changed to ${config.AUTO_STATUS_SEEN}`)
-})
-
-cmd({
-    pattern: "AUTO_STATUS_REACT",
-    category: "owner",
-    filename: __filename
-},
-async (conn, mek, m, { from, args, reply, isOwner }) => {
-
-if (!isOwner) return reply("Owner only command")
-
-if (!args[0]) return reply("Use true or false")
-
-let value = args[0].toLowerCase()
-
-if (value === "true") {
-    config.AUTO_STATUS_REACT = true
-} else if (value === "false") {
-    config.AUTO_STATUS_REACT = false
-} else {
-    return reply("Use true or false")
-}
-
-reply(`AUTO_STATUS_REACT changed to ${config.AUTO_STATUS_REACT}`)
+    reply(`AUTO_STATUS_${type} changed to ${config[`AUTO_STATUS_${type}`]}`)
 })
