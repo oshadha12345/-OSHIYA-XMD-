@@ -5,8 +5,8 @@ const moment = require("moment-timezone");
 const pendingMenu = {};
 
 // ================= CONFIG =================
-const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1😼";
-const ownerName = "OSHADHA";
+const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1";
+const ownerName = "𝐎𝐬𝐡𝐚𝐝𝐡𝐚 💗";
 const prefix = ".";
 
 const headerImage = "https://files.catbox.moe/imxhbb.png";
@@ -76,7 +76,7 @@ cmd({
    👑  ${toFancy(botName)}  👑
 ╚═══━━━─ • ─━━━═══╝
 
-╭━━━〔 👤 ɪɴꜰᴏ 〕━━━╮
+╭━━━〔 🧬 ɪɴꜰᴏ 〕━━━╮
 ┃ 👑 ᴏᴡɴᴇʀ   : ${ownerName}
 ┃ 👤 ᴜꜱᴇʀ    : ${pushname}
 ┃ 📅 ᴅᴀᴛᴇ    : ${date}
@@ -92,7 +92,7 @@ cmd({
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n🌷 ʀᴇᴘʟʏ ᴡɪᴛʜ ᴄᴀᴛᴇɢᴏʀʏ ɴᴜᴍʙᴇʀ ᴛᴏ ᴇxᴘʟᴏʀᴇ`;
+    menuText += `\n🌷 > ʀᴇᴘʟʏ ᴡɪᴛʜ ᴄᴀᴛᴇɢᴏʀʏ ɴᴜᴍʙᴇʀ ᴛᴏ ᴇxᴘʟᴏʀᴇ`;
 
     // ===== SEND MENU AFTER VOICE =====
     await test.sendMessage(from, {
