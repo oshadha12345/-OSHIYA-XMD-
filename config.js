@@ -17,8 +17,8 @@ AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
 NEWSLETTER_JID: "120363424190990486@newsletter",
 GROUP_INVITE_LINK: "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib",
-MEGA_EMAIL: "yourmega@gmail.com",
-MEGA_PASS: "yourpassword",
+MEGA_EMAIL: "oshiya444@gmail.com",
+MEGA_PASS: "!kvs95v9xHUnaDW",
 
 
 
