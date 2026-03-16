@@ -28,11 +28,12 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 
 const config = require('./config');
+const oshiya = require('./oshiya');
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
   getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
 } = require('./lib/functions');
-const { Storage } = require("megajs");
+const { File } = require('megajs');
 const { commands, replyHandlers } = require('./command');
 
 const app = express();
@@ -43,44 +44,28 @@ const ownerNumber = ['94725364886'];
 const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
 async function ensureSessionFile() {
+  if (!fs.existsSync(credsPath)) {
+    if (!config.SESSION_ID) {
+      console.error('❌ SESSION_ID env variable is missing. Cannot restore session.');
+      process.exit(1);
+    }
 
-  if (fs.existsSync(credsPath)) {
-    console.log("✅ Session already exists");
-    return connectToWA();
-  }
+    console.log("𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📂");
 
-  console.log("📂 Loading session from MEGA...");
+    let sessdata = config.SESSION_ID.trim().replace(/^ᴏꜱʜɪʏᴀ~/, '');
+    const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
 
-  const email = config.MEGA_EMAIL;
-  const password = config.MEGA_PASS;
+    filer.download((err, data) => {
+      if (err) {
+        console.error("❌ Failed to download session file from MEGA:", err);
+        process.exit(1);
+      }
 
-  if (!email || !password) {
-    console.log("❌ MEGA_EMAIL or MEGA_PASS missing in config");
-    process.exit(1);
-  }
-
-  const storage = await new Storage({
-    email: email,
-    password: password,
-  }).ready;
-
-  const file = storage.root.children.find(f => f.name === "creds.json");
-
-  if (!file) {
-    console.log("❌ creds.json not found in MEGA account");
-    process.exit(1);
-  }
-
-  const data = await file.downloadBuffer();
-
-  fs.mkdirSync("./auth_info_baileys", { recursive: true });
-
-  fs.writeFileSync(credsPath, data);
-
-  console.log("✅ Session restored from MEGA");
-
-  connectToWA();
-}
+      fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });
+      fs.writeFileSync(credsPath, data);
+      console.log("✅ 𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐈𝐃 𝐒𝐀𝐕𝐄 ✅");
+      setTimeout(() => {
+        connectToWA();
       }, 2000);
     });
   } else {
@@ -120,6 +105,29 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
+
+      // ================= AUTO NEWSLETTER FOLLOW =================
+
+try {
+if (config.NEWSLETTER_JID) {
+await test.newsletterFollow(config.NEWSLETTER_JID);
+console.log("✅ Auto Followed Newsletter Successfully");
+}
+} catch (err) {
+console.log("❌ You joind", err);
+}
+
+//============AUTOGROUP============
+
+if (config.GROUP_INVITE_LINK) {
+try {
+const inviteCode = config.GROUP_INVITE_LINK.split("https://chat.whatsapp.com/")[1];
+await test.groupAcceptInvite(inviteCode);
+console.log("✅ Bot successfully joined the group!");
+} catch (err) {
+console.log("❌ Failed to join group:", err);
+}
+}
 
 
       const up = `╔══════════════════════════╗
