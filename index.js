@@ -323,7 +323,6 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     const botNumber = test.user.id.split(':')[0];
     const pushname = mek.pushName || 'Sin Nombre';
     const isMe = botNumber.includes(senderNumber);
-    const isOwner = ownerNumber.includes(senderNumber) || isMe;
     const botNumber2 = await jidNormalizedUser(test.user.id);
 
     const groupMetadata = isGroup ? await test.groupMetadata(from).catch(() => {}) : '';
@@ -343,11 +342,11 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     // ================= MODE SYSTEM ================= */
 
     if (liveConfig.MODE === "private") {
-      if (!isOwner) return;
+  return;
     }
 
     if (liveConfig.MODE === "inbox") {
-      if (isGroup) return;
+      if (isInbox) return;
     }
 
     if (liveConfig.MODE === "group") {
@@ -366,7 +365,7 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
           cmd.function(test, mek, m, {
             from, quoted: mek, body, isCmd, command: commandName, args, q,
             isGroup, sender, senderNumber, botNumber2, botNumber, pushname,
-            isMe, isOwner, groupMetadata, groupName, participants, groupAdmins,
+            isMe, groupMetadata, groupName, participants, groupAdmins,
             isBotAdmins, isAdmins, reply,
           });
         } catch (e) {
