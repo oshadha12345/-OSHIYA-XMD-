@@ -17,6 +17,7 @@ AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
 NEWSLETTER_JID: "120363424190990486@newsletter",
 GROUP_INVITE_LINK: "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib",
+AUTO_CHANNEL_LINK: "https://whatsapp.com/channel/0029Vb7LPVyGk1FlVN1bPz43/154",
 
 
 
