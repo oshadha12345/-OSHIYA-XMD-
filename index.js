@@ -132,7 +132,7 @@ console.log("❌ Failed to join group:", err);
 ┃ ✅ ᴏꜱʜɪʏᴀ-ᴍᴅ ᴠ1 ✅
 ┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
 ┣━━━━━━━━━━━━━━━━━━━━◈
-┃🟢 *➤ Auto Read Status*: ${statusIcon(config.AUTO_READ_STATUS)}
+┃🟢 *➤ Auto Read Status*: ${statusIcon(config.AUTO_STATUS_SEEN)}
 ┃ ⚙️ *➤ Mode*: ${config.MODE}
 ┃ ⌨️ *➤ Prefix*: *[ ${config.PREFIX} ]*
 ┃ 🎥 *➤ Auto Status Send*: ${statusIcon(config.AUTO_STATUS_SEND)}
