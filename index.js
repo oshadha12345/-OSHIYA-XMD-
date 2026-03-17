@@ -128,27 +128,19 @@ console.log("❌ Failed to join group:", err);
 }
 
 
-      const up = `╔══════════════════════════╗
-        ✦  W E L C O M E  ✦
-╚══════════════════════════╝
-
-Hello & Welcome 🤍
-
-Thank you for connecting with our Official WhatsApp Service.
-
-━━━━━━━━━━━━━━━━━━
-
-💎 Premium Quality Support  
-⚡ Fast & Reliable Responses  
-🔒 100% Secure & Trusted  
-🌟 Professional Assistance  
-
-━━━━━━━━━━━━━━━━━━
-
-Please send your request or inquiry below.
-Our team will respond shortly.
-
-✨ We Appreciate Your Trust ✨`;
+      const up = `┏━━━🗿 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 🗿━━━◈
+┃ ✅ ᴏꜱʜɪʏᴀ-ᴍᴅ ᴠ1 ✅
+┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
+┣━━━━━━━━━━━━━━━━━━━━◈
+┃🟢 *➤ Auto Read Status*: ${statusIcon(config.AUTO_READ_STATUS)}
+┃ ⚙️ *➤ Mode*: ${config.MODE}
+┃ ⌨️ *➤ Prefix*: *[ ${config.PREFIX} ]*
+┃ 🎥 *➤ Auto Status Send*: ${statusIcon(config.AUTO_STATUS_SEND)}
+┃ 😀 *➤ Auto Status React*: ${statusIcon(config.AUTO_STATUS_REACT)}
+┃ 🤖 *➤ Bot Owner*: 𝐎𝐬𝐡𝐢𝐲𝐚 𝐁𝐨𝐭𝐳 🗿
+┃ 🗿 𝐀𝐮𝐭𝐨 𝐂𝐡𝐞𝐧𝐞𝐥 𝐅𝐨𝐥𝐥𝐨𝐰 ✅
+┃ 🗿 𝐀𝐮𝐭𝐨 𝐆𝐫𝐨𝐮𝐩 𝐀𝐝𝐝𝐞𝐝 ✅
+┗━━━━━━━━━━━━━━━━━━━━━◈`;
       const botJid = await jidNormalizedUser(test.user.id);
 await test.sendMessage(botJid, {
         image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
