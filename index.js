@@ -39,7 +39,6 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 const prefix = config.PREFIX || '.'; 
-const ownerNumber = ['94725364886'];
 const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
 async function ensureSessionFile() {
