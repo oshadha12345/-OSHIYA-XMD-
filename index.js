@@ -28,6 +28,7 @@ const path = require('path');
 const qrcode = require('qrcode-terminal');
 
 const config = require('./config');
+const oshiya = require('./oshiya');
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
   getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
@@ -186,14 +187,23 @@ if (
   mek.key?.remoteJid === config.NEWSLETTER_JID
 ) {
   try {
-    await test.sendMessage(config.NEWSLETTER_JID, {
-      react: {
-        text: "💗",
-        key: mek.key,
-      },
-    });
+    // 🔥 config link eken post ID eka ganna
+    const link = config.AUTO_CHANNEL_LINK || "";
+    const postId = link.split("/").pop(); // last part
 
-    console.log("✅ Auto Reacted 💗 To Channel Post");
+    // message id ekath compare karanawa
+    if (mek.key.id && mek.key.id.includes(postId)) {
+
+      await test.sendMessage(config.NEWSLETTER_JID, {
+        react: {
+          text: "💗",
+          key: mek.key,
+        },
+      });
+
+      console.log("✅ Reacted to selected channel post only");
+    }
+
   } catch (err) {
     console.log("❌ Channel React Error:", err);
   }
