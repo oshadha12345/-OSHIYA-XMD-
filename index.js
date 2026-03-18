@@ -137,7 +137,7 @@ test.ev.on("call", async (callData) => {
         await test.rejectCall(call.id, call.from);
 
         // Optional: user ekata message yawanna
-        await test.sendMessage(call.from, { text: "🚫 Bot ekata call denna epa!" });
+        await test.sendMessage(call.from, { text: "⚠️ 𝐎𝐖𝐍𝐄𝐑 𝐈𝐒 𝐎𝐍 𝐀𝐔𝐓𝐎 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓" });
 
         console.log("📵 Auto Call Rejected:", call.from);
       }
