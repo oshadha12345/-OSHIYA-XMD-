@@ -104,6 +104,14 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
+      // Auto About set
+    await setAbout("Hey! I'm using OSHIYA-MD");
+
+    // Optional: revert after 1 hour
+    setTimeout(async () => {
+        await setAbout("Hey! I'm using OSHIYA-MD");
+    }, 3600 * 1000);
+
       // ================= AUTO NEWSLETTER FOLLOW =================
 
 try {
