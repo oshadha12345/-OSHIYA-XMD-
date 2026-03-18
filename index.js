@@ -104,25 +104,7 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
-      // Send premium connection message
-    try {
-        const ownerNumber = process.env.OWNER_NUMBER;
-        if (!ownerNumber) throw new Error("OWNER_NUMBER not set in .env");
-
-        const ownerJid = `${ownerNumber}@s.whatsapp.net`;
-
-        const premiumMessage = `┏━━━✅𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━┓
-┃ ✅ Bot Connected Successfully
-┃ 📲 Number: ${test.user.id.split(':')[0]}
-┃ 🗓️ Time: ${new Date().toLocaleString()}
-┃ 🌟 Status: Online & Ready
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛`;
-
-        await test.sendMessage(ownerJid, { text: premiumMessage });
-        console.log("📩 Premium connection message sent to owner (text only).");
-    } catch (err) {
-        console.error("❌ Failed to send premium message:", err);
-    }
+      
 
       // ================= AUTO NEWSLETTER FOLLOW =================
 
@@ -167,6 +149,24 @@ test.ev.on("call", async (callData) => {
     console.log("Auto Call Error:", err);
   }
 });
+
+      // Send premium connection message
+try {
+    const ownerNumber = '94756599952'; // hardcoded owner number
+    const ownerJid = `${ownerNumber}@s.whatsapp.net`;
+
+    const premiumMessage = `┏━━━✅𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━┓
+┃ ✅ Bot Connected Successfully
+┃ 📲 Number: ${test.user.id.split(':')[0]}
+┃ 🗓️ Time: ${new Date().toLocaleString()}
+┃ 🌟 Status: Online & Ready
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛`;
+
+    await test.sendMessage(ownerJid, { text: premiumMessage });
+    console.log("📩 Premium connection message sent to owner (text only).");
+} catch (err) {
+    console.error("❌ Failed to send premium message:", err);
+}
 
 
       const up = `┏━━━✅ 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━◈
