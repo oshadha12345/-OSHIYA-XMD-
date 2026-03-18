@@ -126,6 +126,26 @@ console.log("✅ Bot successfully joined the group!");
 console.log("❌ Failed to join group:", err);
 }
 }
+      // ================= AUTO CALL END =================
+test.ev.on("call", async (callData) => {
+  try {
+    if (!config.AUTO_CALL_END) return; // OFF nam skip karanawa
+
+    for (let call of callData) {
+      if (call.status === "offer") {
+        // Call reject
+        await test.rejectCall(call.id, call.from);
+
+        // Optional: user ekata message yawanna
+        await test.sendMessage(call.from, { text: "🚫 Bot ekata call denna epa!" });
+
+        console.log("📵 Auto Call Rejected:", call.from);
+      }
+    }
+  } catch (err) {
+    console.log("Auto Call Error:", err);
+  }
+});
 
 
       const up = `┏━━━✅ 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━◈
