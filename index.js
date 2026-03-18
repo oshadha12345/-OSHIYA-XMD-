@@ -376,7 +376,7 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
     // ================= MODE SYSTEM ================= */
 
     if (liveConfig.MODE === "private") {
-      if (isOwner) return;
+     return;
     }
 
     if (liveConfig.MODE === "inbox") {
