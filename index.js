@@ -27,6 +27,7 @@ const axios = require('axios');
 const path = require('path');
 const qrcode = require('qrcode-terminal');
 
+const { handlePresence, autoTyping, autoRecording } = require("./oshiya");
 const config = require('./config');
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
