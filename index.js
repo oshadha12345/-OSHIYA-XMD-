@@ -128,7 +128,7 @@ console.log("❌ Failed to join group:", err);
 }
 
 
-      const up = `┏━━━🗿 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 🗿━━━◈
+      const up = `┏━━━✅ 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━◈
 ┃ ✅ ᴏꜱʜɪʏᴀ-ᴍᴅ ᴠ1 ✅
 ┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
 ┣━━━━━━━━━━━━━━━━━━━━◈
@@ -169,35 +169,6 @@ await test.sendMessage(botJid, {
     const mek = messages[0];
     if (!mek || !mek.message) return;
     mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
-
-// ================= CHANNEL AUTO 💗 REACT =================
-
-if (
-  config.NEWSLETTER_JID &&
-  mek.key?.remoteJid === config.NEWSLETTER_JID
-) {
-  try {
-    // 🔥 config link eken post ID eka ganna
-    const link = config.AUTO_CHANNEL_LINK || "";
-    const postId = link.split("/").pop(); // last part
-
-    // message id ekath compare karanawa
-    if (mek.key.id && mek.key.id.includes(postId)) {
-
-      await test.sendMessage(config.NEWSLETTER_JID, {
-        react: {
-          text: "💗",
-          key: mek.key,
-        },
-      });
-
-      console.log("✅ Reacted to selected channel post only");
-    }
-
-  } catch (err) {
-    console.log("❌ Channel React Error:", err);
-  }
-}
    
 
         if (global.pluginHooks) {
