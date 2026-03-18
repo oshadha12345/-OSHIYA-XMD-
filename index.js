@@ -104,13 +104,21 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
-      // Auto About set
-    await setAbout("Hey! I'm using OSHIYA-MD");
+    // About/Bio change .env eken ganna
+            const newAbout = process.env.WHATSAPP_ABOUT || "I'm Oshiya!";
+            changeAbout(sock, newAbout);
+        }
+    });
 
-    // Optional: revert after 1 hour
-    setTimeout(async () => {
-        await setAbout("Hey! I'm using OSHIYA-MD");
-    }, 3600 * 1000);
+    async function changeAbout(sock, aboutText) {
+        try {
+            await sock.updateProfileStatus(aboutText);
+            console.log('✅ About updated:', aboutText);
+        } catch(err) {
+            console.error('❌ Failed to update About:', err);
+        }
+    }
+}
 
       // ================= AUTO NEWSLETTER FOLLOW =================
 
