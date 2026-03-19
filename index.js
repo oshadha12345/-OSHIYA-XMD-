@@ -34,6 +34,8 @@ const {
   getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
 } = require('./lib/functions');
 const { File } = require('megajs');
+const { connectDB, refreshDB } = require("./lib/db");
+const config = require("./oshiya2"); // live config
 const { commands, replyHandlers } = require('./command');
 
 const app = express();
