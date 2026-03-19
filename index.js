@@ -108,7 +108,7 @@ async function connectToWA() {
       const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
 
 await test.sendMessage(owner, {
-    text: "✅ Bot restarted successfully (Fresh start)"
+    text: "𝐑𝐄𝐒𝐓𝐀𝐑𝐓𝐈𝐍𝐆 . . . ✅"
 });
       
       // ✅ AUTO ONLINE / OFFLINE START
@@ -150,7 +150,7 @@ test.ev.on("call", async (callData) => {
         await test.rejectCall(call.id, call.from);
 
         // Optional: user ekata message yawanna
-        await test.sendMessage(call.from, { text: "⚠️ 𝐎𝐖𝐍𝐄𝐑 𝐈𝐒 𝐎𝐍 𝐀𝐔𝐓𝐎 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓" });
+        await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓" });
 
         console.log("📵 Auto Call Rejected:", call.from);
       }
@@ -165,12 +165,12 @@ try {
     const ownerNumber = '94756599952'; // hardcoded owner number
     const ownerJid = `${ownerNumber}@s.whatsapp.net`;
 
-    const premiumMessage = `┏━━━✅𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━┓
+    const premiumMessage = `┏━━✅𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━┓
 ┃ ✅ Bot Connected Successfully
 ┃ 📲 Number: ${test.user.id.split(':')[0]}
 ┃ 🗓️ Time: ${new Date().toLocaleString()}
 ┃ 🌟 Status: Online & Ready
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛`;
+┗━━━━━━━━━━━━━━━━┛`;
 
     await test.sendMessage(ownerJid, { text: premiumMessage });
     console.log("📩 Premium connection message sent to owner (text only).");
@@ -184,12 +184,12 @@ try {
 ┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
 ┣━━━━━━━━━━━━━━━◈
 ┃🟢 *Auto Read Status*: ${config.AUTO_STATUS_SEEN}
-┃ ⚙️ * Mode*: ${config.MODE}
+┃ ⚙️ *Mode*: ${config.MODE}
 ┃ 🔌 *Deploy Nb*: ${config.OWNER_NUMBER}
-┃ ⌨️ * Prefix*: *[ ${config.PREFIX} ]*
-┃ 🎥 * Auto Status Send*: ${config.AUTO_STATUS_SEND}
-┃ 😀 * Auto Status React*: ${config.AUTO_STATUS_REACT}
-┃ 👻 * Auto Call reject*: ${config.AUTO_CALL_END}
+┃ ⌨️ *Prefix*: *[ ${config.PREFIX} ]*
+┃ 🎥 *Auto Status Send*: ${config.AUTO_STATUS_SEND}
+┃ 😀 *Auto Status React*: ${config.AUTO_STATUS_REACT}
+┃ 👻 *Auto Call reject*: ${config.AUTO_CALL_END}
 ┃ 🤓 *Auto Recoding*: ${config.AUTO_RECODING}
 ┃ ⚠️ *Auto Typing*: ${config.AUTO_TYPING}
 ┃ 🧞 *Always Online*: ${config.AUTO_ONLINE}
@@ -440,7 +440,29 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
 ensureSessionFile();
 
 app.get("/", (req, res) => {
-  res.send("𝐇𝐄𝐘 𝐎𝐒𝐇𝐈𝐘𝐀 𝐒𝐓𝐀𝐑𝐓𝐃💐");
+  res.send("╔══════════════════════════════════════╗
+║   ██████╗  ███████╗██╗  ██╗██╗██╗   
+║  ██╔═══██╗██╔════╝██║  ██║██║██║  
+║  ██║   ██║███████╗███████║██║██║   
+║  ██║   ██║╚════██║██╔══██║██║██║   
+║  ╚██████╔╝███████║██║  ██║██║██║   
+║   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚═╝   
+║                                   
+║      ✅💗 OSHIYA MD CONNECTED 💗✅   
+║                                    
+╠══════════════════════════════════════╣
+║ 🤖 BOT NAME  : OSHIYA MD   💗        
+║ 👑 OWNER     : OSHIYA 💗               
+║ 🌐 PLATFORM  : WhatsApp 💗         
+║ ⚙️ VERSION   : v1    💗         
+║ ⚡ STATUS    : ONLINE & ACTIVE   ✅   
+╠══════════════════════════════════════╣
+║ 🚀 SYSTEM INITIALIZED SUCCESSFULLY 
+║ 📡 ALL COMMANDS ARE READY TO USE    
+║                                    
+║ 💡 TYPE MENU TO GET COMMANDS    
+║ ❤️ POWERED BY OSHIYA TECH          
+╚══════════════════════════════════════╝");
 });
 
 app.listen(port, () => console.log(`
