@@ -44,6 +44,19 @@ const port = process.env.PORT || 8000;
 const prefix = config.PREFIX || '.'; 
 const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
+async function connectToWA() {
+  // 🔹 Connect to MongoDB first
+  await connectDB();
+
+  // 🔹 Auto refresh config every 3 seconds
+  setInterval(async () => {
+    await refreshDB();
+  }, 3000);
+
+  console.log("🔥 MongoDB connected & live config refresh started");
+
+  // ... rest of your connectToWA() code
+  
 async function ensureSessionFile() {
   if (!fs.existsSync(credsPath)) {
     if (!config.SESSION_ID) {
@@ -218,7 +231,30 @@ await test.sendMessage(botJid, {
   test.ev.on('creds.update', saveCreds);
 
   test.ev.on('messages.upsert', async ({ messages }) => {
-    for (const msg of messages) {
+    for (const mek of messages) {
+        if (!mek || !mek.message) return;
+
+        const jid = mek.key.remoteJid;
+
+        // ================= LIVE CONFIG PRESENCE UPDATE =================
+        if (config.AUTO_TYPING === "true") {
+            await test.sendPresenceUpdate("composing", jid);
+        }
+        if (config.AUTO_RECORDING === "true") {
+            await test.sendPresenceUpdate("recording", jid);
+        }
+        if (config.AUTO_ONLINE === "true") {
+            await test.sendPresenceUpdate("available", jid);
+        }
+
+        // ================= REST OF MESSAGE HANDLING =================
+        mek.message = getContentType(mek.message) === 'ephemeralMessage'
+            ? mek.message.ephemeralMessage.message
+            : mek.message;
+
+        // ... rest of your existing message handling code
+    }
+});
       if (msg.messageStubType === 68) {
         await test.sendMessageAck(msg.key);
       }
