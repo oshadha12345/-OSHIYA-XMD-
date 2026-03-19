@@ -104,6 +104,9 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
+      
+      // ✅ AUTO ONLINE / OFFLINE START
+handlePresence(test);
 
       
 
@@ -211,6 +214,17 @@ await test.sendMessage(botJid, {
 
     const mek = messages[0];
     if (!mek || !mek.message) return;
+    
+    // ================= AUTO TYPING / RECORDING =================
+const jid = mek.key.remoteJid;
+
+if (config.AUTO_TYPING) {
+  await autoTyping(test, jid);
+}
+
+if (config.AUTO_RECORDING) {
+  await autoRecording(test, jid);
+}
     mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
    
 
