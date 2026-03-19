@@ -15,7 +15,7 @@ AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
 AUTO_ONLINE: 'true',      // always online
 AUTO_TYPING: 'true',      // typing status  AUTO_RECORDING: false   //
-AUTO_RECORDING: 'true',
+AUTO_RECORDING: 'false',
 AUTO_CALL_END: 'true',
 NEWSLETTER_JID: "120363424190990486@newsletter",
 GROUP_INVITE_LINK: "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib",
