@@ -184,12 +184,15 @@ try {
 ┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
 ┣━━━━━━━━━━━━━━━◈
 ┃🟢 *➤ Auto Read Status*: ${config.AUTO_STATUS_SEEN}
-┃ ⚙️ *➤ Mode*: ${config.MODE}
-┃ ⌨️ *➤ Prefix*: *[ ${config.PREFIX} ]*
-┃ 🎥 *➤ Auto Status Send*: ${config.AUTO_STATUS_SEND}
-┃ 😀 *➤ Auto Status React*: ${config.AUTO_STATUS_REACT}
-┃ 👻 *➤ Auto Call reject*: ${config.AUTO_CALL_END}
-┃ 🤖 *➤ Bot Owner*: 𝐎𝐬𝐡𝐢𝐲𝐚 𝐁𝐨𝐭𝐳 🗿
+┃ ⚙️ * Mode*: ${config.MODE}
+┃ ⌨️ * Prefix*: *[ ${config.PREFIX} ]*
+┃ 🎥 * Auto Status Send*: ${config.AUTO_STATUS_SEND}
+┃ 😀 * Auto Status React*: ${config.AUTO_STATUS_REACT}
+┃ 👻 * Auto Call reject*: ${config.AUTO_CALL_END}
+┃ 🤓 *Auto Recoding*: ${config.AUTO_RECODING}
+┃ ⚠️ *Auto Typing*: ${config.AUTO_TYPING}
+┃ 🧞 *Always Online*: ${config.AUTO_ONLINE}
+┃ 🤖 *Bot Owner*: 𝐎𝐬𝐡𝐢𝐲𝐚 𝐁𝐨𝐭𝐳 🗿
 ┃ 🗿 𝐀𝐮𝐭𝐨 𝐂𝐡𝐞𝐧𝐞𝐥 𝐅𝐨𝐥𝐥𝐨𝐰 ✅
 ┃ 🗿 𝐀𝐮𝐭𝐨 𝐆𝐫𝐨𝐮𝐩 𝐀𝐝𝐝𝐞𝐝 ✅
 ┗━━━━━━━━━━━━━━━━━◈`;
