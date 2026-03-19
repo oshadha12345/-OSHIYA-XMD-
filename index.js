@@ -104,6 +104,12 @@ async function connectToWA() {
       }
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
+
+      const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
+
+await test.sendMessage(owner, {
+    text: "✅ Bot restarted successfully (Fresh start)"
+});
       
       // ✅ AUTO ONLINE / OFFLINE START
 handlePresence(test);
