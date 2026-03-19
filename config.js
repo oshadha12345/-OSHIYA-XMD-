@@ -9,7 +9,7 @@ SESSION_ID: process.env.SESSION_ID || "ᴏꜱʜɪʏᴀ~bM0S1QYT#hBPfT6JfXn-92o0d
 OWNER_NAME: process.env.OWNER_NAME || "Oshiya💗",
 OWNER_NUMBER: '94725364886',
 AUTO_STATUS_SEND: process.env.AUTO_STATUS_SEND || "true",
-MODE: "public",
+MODE: "private",
 PREFIX: ".",
 AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
