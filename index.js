@@ -183,8 +183,9 @@ try {
 ┃ ✅ ᴏꜱʜɪʏᴀ-ᴍᴅ ᴠ1 ✅
 ┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿
 ┣━━━━━━━━━━━━━━━◈
-┃🟢 *➤ Auto Read Status*: ${config.AUTO_STATUS_SEEN}
+┃🟢 *Auto Read Status*: ${config.AUTO_STATUS_SEEN}
 ┃ ⚙️ * Mode*: ${config.MODE}
+┃ 🔌 *Deploy Nb*: ${config.OWNER_NUMBER}
 ┃ ⌨️ * Prefix*: *[ ${config.PREFIX} ]*
 ┃ 🎥 * Auto Status Send*: ${config.AUTO_STATUS_SEND}
 ┃ 😀 * Auto Status React*: ${config.AUTO_STATUS_REACT}
