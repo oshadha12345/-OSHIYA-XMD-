@@ -265,14 +265,23 @@ if (mek.key?.remoteJid === 'status@broadcast') {
   const senderJid = mek.key.participant || mek.key.remoteJid || "unknown@s.whatsapp.net";
   const mentionJid = senderJid.includes("@s.whatsapp.net") ? senderJid : senderJid + "@s.whatsapp.net";
 
-  // ✅ AUTO MESSAGE REACT (GLOBAL)
-    if (config.AUTO_REACT === "true" && !mek.key.fromMe) {
-        try {
-            const emojis = config.AUTO_REACT_EMOJIS.split(',');
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            await test.sendMessage(from, { react: { text: randomEmoji, key: mek.key } });
-        } catch (e) { console.error("React Error:", e); }
+// ✅ AUTO MESSAGE REACT (FOR ALL MESSAGES)
+if (config.AUTO_REACT === "true" && !mek.key.fromMe) {
+    try {
+        // config එකේ emojis නැත්නම් default set එකක් ගනිමු
+        const emojiList = config.AUTO_REACT_EMOJIS ? config.AUTO_REACT_EMOJIS.split(',') : ['❤️', '🔥', '✨', '💎', '🙌'];
+        const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+        
+        await test.sendMessage(from, { 
+            react: { 
+                text: randomEmoji.trim(), 
+                key: mek.key 
+            } 
+        });
+    } catch (e) { 
+        console.error("React Error:", e); 
     }
+}
 
   if (config.AUTO_STATUS_SEEN === "true") {
     try {
