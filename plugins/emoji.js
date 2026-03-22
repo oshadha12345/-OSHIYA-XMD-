@@ -1,19 +1,23 @@
 const { cmd, commands } = require('../command');
 const config = require('../config');
 
+// Hama message ekakatama emoji react karana plugin eka
 commands.push({
     on: "body",
-    async function (conn, mek, m, { from, body, isGroup, isAdmins, isBotAdmins, reply }) {
+    async (conn, mek, m, { from, body, isGroup, isAdmins, isBotAdmins, reply }) => {
         try {
-            // Config එකේ සක්‍රීයද සහ Emojis තියෙනවද කියලා බලනවා
+            // Config eke AUTO_MESSAGE_REACT 'true' nam pamanak kriyaathmaka we
             if (config.AUTO_MESSAGE_REACT === 'true' || config.AUTO_MESSAGE_REACT === true) {
                 
-                // Emoji list එකක් නැතිනම් reaction එකක් වෙන්නේ නැහැ
-                if (!config.REACT_MESSAGE_EMOJIS) return;
-
-                const emojis = config.REACT_MESSAGE_EMOJIS.split(',');
+                // Emoji list eka config eken gannawa
+                // Ewa neththam default emoji tikak use karanawa
+                const emojiString = config.REACT_MESSAGE_EMOJIS || '❤️,😂,🔥,✨,💯,👍,✅,🤖,🌟,⚡';
+                const emojis = emojiString.split(',');
+                
+                // List eken random emoji ekak thoragannawa
                 const selectedEmoji = emojis[Math.floor(Math.random() * emojis.length)].trim();
 
+                // Message ekata React kireema
                 await conn.sendMessage(from, {
                     react: {
                         text: selectedEmoji,
@@ -22,7 +26,7 @@ commands.push({
                 });
             }
         } catch (e) {
-            console.log("Error in Auto React: ", e);
+            console.log("Auto React Error: ", e);
         }
     }
 });
