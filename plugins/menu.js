@@ -3,7 +3,7 @@ const config = require('../config');
 const moment = require("moment-timezone");
 
 // ================= STATE =================
-const pendingMenu = {}; // මෙහි sender සහ msgId දෙකම store කරයි
+const pendingMenu = {}; // මෙහි sender සහ මෙනු එකේ msgId එක store වේ.
 
 // ================= CONFIG =================
 const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1";
@@ -33,20 +33,22 @@ cmd({
   filename: __filename
 }, async (test, m, msg, { from, sender, pushname }) => {
   try {
+    await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
+
     const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
     const time = moment().tz("Asia/Colombo").format("HH:mm:ss");
 
     const commandMap = {};
-    commands.forEach(cmd => {
-      if (!cmd.dontAddCommandList && cmd.pattern) {
-        const category = (cmd.category || "MISC").toUpperCase();
-        if (!commandMap[category]) commandMap[category] = [];
-        commandMap[category].push(cmd);
-      }
-    });
+    for (const command of commands) {
+      if (command.dontAddCommandList) continue;
+      const category = (command.category || "MISC").toUpperCase();
+      if (!commandMap[category]) commandMap[category] = [];
+      commandMap[category].push(command);
+    }
 
     const categories = Object.keys(commandMap);
 
+    // Voice Send
     await test.sendMessage(from, { audio: { url: autoVoice }, mimetype: "audio/mp4", ptt: false });
 
     let menuText = `╔═══━━━─ • ─━━━═══╗\n👑  ${toFancy(botName)}  👑\n╚═══━━━─ • ─━━━═══╝\n\n`;
@@ -57,9 +59,10 @@ cmd({
     });
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n\n🌷 > ʀᴇᴘʟʏ ᴡɪᴛʜ ᴄᴀᴛᴇɢᴏʀʏ ɴᴜᴍʙᴇʀ`;
 
+    // මෙනු පණිවිඩය යවා එහි ID එක ලබා ගැනීම
     const sentMsg = await test.sendMessage(from, { image: { url: headerImage }, caption: menuText }, { quoted: m });
 
-    // මෙතනදී sender ගේ ID එක සහ යැවූ මැසේජ් එකේ ID එක (stanzaId) සේව් කරගන්නවා
+    // State එකේ msgId එක සේව් කිරීම
     pendingMenu[sender] = { 
         step: "category", 
         commandMap, 
@@ -67,7 +70,7 @@ cmd({
         msgId: sentMsg.key.id 
     };
 
-    setTimeout(() => { delete pendingMenu[sender]; }, 5 * 60 * 1000);
+    setTimeout(() => { delete pendingMenu[sender]; }, 2 * 60 * 1000);
 
   } catch (err) {
     console.error(err);
@@ -75,40 +78,47 @@ cmd({
 });
 
 // ========================
-// ===== REPLY HANDLER =====
+// ===== REPLY SELECT =====
 // ========================
-// මෙම කොටස වෙනම command එකක් ලෙස නොව, ලැබෙන හැම මැසේජ් එකක්ම check කරන ලෙස සැකසීම සුදුසුයි
-test.ev.on('messages.upsert', async (chatUpdate) => {
-    const m = chatUpdate.messages[0];
-    if (!m.message || m.key.fromMe) return;
+// මෙහිදී cmd function එක වෙනුවට "on: body" භාවිතා කර Reply පරීක්ෂා කරයි
+cmd({
+  on: "body"
+}, async (test, m, msg, { from, body, sender }) => {
+  try {
+    const input = body.trim();
+    const pending = pendingMenu[sender];
 
-    const from = m.key.remoteJid;
-    const sender = m.key.participant || m.key.remoteJid;
-    const msgText = m.message.conversation || m.message.extendedTextMessage?.text || "";
+    // පරීක්ෂාව: State එකේ ඉන්නවද? අංකයක්ද? ඒ වගේම Reply එකක්ද?
+    if (pending && pending.step === "category" && /^[0-9]+$/.test(input)) {
+        
+        // Reply කළ මැසේජ් එකේ ID එක (stanzaId) ලබා ගැනීම
+        const quotedMsgId = m.msg.contextInfo ? m.msg.contextInfo.stanzaId : null;
 
-    // පරීක්ෂා කරනවා මේක reply එකක්ද සහ sender අපේ state එකේ ඉන්නවද කියලා
-    if (pendingMenu[sender]) {
-        const contextInfo = m.message.extendedTextMessage?.contextInfo;
-        const isReplyToMenu = contextInfo?.stanzaId === pendingMenu[sender].msgId;
-
-        if (isReplyToMenu && /^[0-9]+$/.test(msgText.trim())) {
-            const index = parseInt(msgText.trim()) - 1;
-            const { commandMap, categories } = pendingMenu[sender];
+        // Reply කළ මැසේජ් එක අපේ මෙනු එකේ ID එකට සමාන නම් පමණක් ක්‍රියාත්මක වේ
+        if (quotedMsgId === pending.msgId) {
+            
+            const index = parseInt(input) - 1;
+            const { commandMap, categories } = pending;
 
             if (index >= 0 && index < categories.length) {
+                await test.sendMessage(from, { react: { text: "📂", key: m.key } });
+
                 const selectedCategory = categories[index];
                 const cmds = commandMap[selectedCategory];
 
                 let cmdText = `╭━───❰ ${toFancy(selectedCategory)} ❱───━╮\n`;
                 cmds.forEach((c, i) => {
-                    cmdText += `\n╭─❍ ${i + 1}\n│ ✧ ᴄᴏᴍᴍᴀɴᴅ : ${prefix}${c.pattern}\n│ ✧ ɪɴꜰᴏ    : ${c.desc || "No info"}\n╰───────────────❍\n`;
+                    cmdText += `\n╭─❍ ${i + 1}\n│ ✧ ᴄᴏᴍᴍᴀɴᴅ : ${prefix}${c.pattern}\n│ ✧ ɪɴꜰᴏ    : ${c.desc || "No description"}\n╰───────────────❍\n`;
                 });
 
-                await test.sendMessage(from, { image: { url: headerImage }, caption: cmdText }, { quoted: m });
-                
-                // Sub-menu එක දැම්මට පස්සේ state එක අයින් කරන්න පුළුවන් (අවශ්‍ය නම් තබා ගන්න)
-                // delete pendingMenu[sender]; 
+                await test.sendMessage(from, {
+                    image: { url: headerImage },
+                    caption: cmdText
+                }, { quoted: m });
             }
         }
     }
+  } catch (err) {
+    console.error(err);
+  }
 });
