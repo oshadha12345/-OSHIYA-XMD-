@@ -4,6 +4,7 @@ const config = require('../config');
 // 1. පාලක විධානය (Command to ON/OFF)
 cmd({
     pattern: "autoreact",
+    react: "💫",
     desc: "Auto message reaction සක්‍රීය හෝ අක්‍රීය කරයි.",
     category: "owner",
     use: '.autoreact on/off',
@@ -15,14 +16,14 @@ async (conn, mek, m, { from, q, isGroup, reply }) => {
         const currentUser = m.sender.split('@')[0];
         const isOwner = config.OWNER_NUMBER.includes(currentUser);
 
-        if (!isOwner) return reply("🚫 මෙම විධානය භාවිතා කළ හැක්කේ බොට්ගේ අයිතිකරුට (Owner) පමණි!");
+        if (!isOwner) return reply("🚫 Owner Only");
 
         if (q === 'on') {
             config.AUTO_MESSAGE_REACT = 'true';
-            return reply("✅ **Auto Message Reaction සක්‍රීය කරන ලදී!**\nදැන් ලැබෙන සියලුම පණිවිඩ වලට බොට් React කරනු ඇත.");
+            return reply("✅ **Auto Message Reaction on");
         } else if (q === 'off') {
             config.AUTO_MESSAGE_REACT = 'false';
-            return reply("❌ **Auto Message Reaction අක්‍රීය කරන ලදී!**");
+            return reply("❌ Auto Message Reaction off");
         } else {
             return reply("පාවිච්චි කරන ආකාරය: \n.autoreact on\n.autoreact off");
         }
