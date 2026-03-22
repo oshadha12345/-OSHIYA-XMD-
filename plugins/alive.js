@@ -4,8 +4,8 @@ const config = require('../config');
 cmd(
   {
     pattern: "alive",
-    react: "✨",
-    desc: "Show bot status",
+    react: "✅",
+    desc: "Show bot status with interactive options",
     category: "main",
     filename: __filename,
     fromMe: false,
@@ -14,26 +14,24 @@ cmd(
     try {
       await malvin.sendPresenceUpdate("recording", from);
 
-      const aliveMessage = `
-╭━━━〔 *OSHIYA MD* 〕━━━⬣
-┃ 🤖 Status : *ONLINE & ACTIVE*
-┃ ⚡ Speed  : *Fast Response*
-┃ 🔥 Mode   : *${config.MODE.toUpperCase()}*
-┃ 💎 Version: *V1*
-╰━━━━━━━━━━━━━━━━━━⬣
+      // Premium Alive Message Design
+      const aliveMessage = `┏━━━━━━━━━━━━━━━━━━━━┓
+┃   👑 *OSHIYA MD V1 STATUS* 👑
+┗━━━━━━━━━━━━━━━━━━━━┛
+┃ 🤖 *Status:* Online & Active
+┃ ⚡ *Speed:* Fast Response
+┃ 🔥 *Mode:* ${config.MODE.toUpperCase()}
+┃ 💎 *Version:* V1.0.4
+┃ 👤 *User:* ${m.pushName || 'User'}
+┗━━━━━━━━━━━━━━━━━━━━┛
 
-1️⃣ *Reply with '1' to see Menu*
+1️⃣  *Main Menu*
+2️⃣  *Ping*
 
-🌐 *Official WhatsApp Channel* Follow & Stay Updated 🔔
+🔗 *Official Channel:* https://whatsapp.com/channel/your-link
+📂 *GitHub:* https://github.com/oshadha12345/-OSHIYA-XMD-
 
-📂 *GitHub Repository* https://github.com/oshadha12345/-OSHIYA-XMD-/tree/main
-
-👑 *Owner* 0756599952
-
-⚠️ *Disclaimer* We are not responsible for any WhatsApp bans  
-that may occur due to bot usage.  
-Use at your own risk.
-`;
+> *Powered by Oshadha*`;
 
       // පණිවිඩය යැවීම
       const sentMsg = await malvin.sendMessage(
@@ -50,16 +48,27 @@ Use at your own risk.
       // Reply එක Handle කරන කොටස
       malvin.ev.on('messages.upsert', async (msgUpdate) => {
         const newMsg = msgUpdate.messages[0];
-        if (!newMsg.message) return;
+        if (!newMsg.message || newMsg.key.fromMe) return;
         
         const messageType = Object.keys(newMsg.message)[0];
-        const msgContent = (messageType === 'conversation') ? newMsg.message.conversation : (messageType === 'extendedTextMessage') ? newMsg.message.extendedTextMessage.text : '';
+        const msgContent = (messageType === 'conversation') 
+            ? newMsg.message.conversation 
+            : (messageType === 'extendedTextMessage') 
+            ? newMsg.message.extendedTextMessage.text 
+            : '';
 
-        // යැවූ මැසේජ් එකට '1' කියලා reply කරොත් විතරක් ක්‍රියාත්මක වේ
-        const isReplyToAlive = newMsg.message.extendedTextMessage && newMsg.message.extendedTextMessage.contextInfo.stanzaId === sentMsg.key.id;
+        // අපි යැවූ alive මැසේජ් එකටමද reply කළේ කියා පරීක්ෂා කිරීම (Stanza ID check)
+        const contextInfo = newMsg.message.extendedTextMessage?.contextInfo;
+        const isReplyToAlive = contextInfo?.stanzaId === sentMsg.key.id;
 
-        if (isReplyToAlive && msgContent === '1') {
-            await malvin.sendMessage(from, { text: '.menu' }, { quoted: newMsg });
+        if (isReplyToAlive) {
+            if (msgContent === '1') {
+                // Menu එක යැවීම
+                await malvin.sendMessage(from, { text: '.menu' }, { quoted: newMsg });
+            } else if (msgContent === '2') {
+                // Ping එක යැවීම
+                await malvin.sendMessage(from, { text: '.ping' }, { quoted: newMsg });
+            }
         }
       });
 
