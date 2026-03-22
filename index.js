@@ -105,6 +105,15 @@ async function connectToWA() {
     } else if (connection === 'open') {
       console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
 
+      // ================= AUTO UPDATE ABOUT =================
+      try {
+        const status = `OSHIYA-MD V1`;
+        await test.updateProfileStatus(status);
+        console.log("✅ Profile About updated successfully!");
+      } catch (err) {
+        console.error("❌ Failed to update About:", err);
+      }
+
       const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
 
 await test.sendMessage(owner, {
