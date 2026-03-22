@@ -265,6 +265,15 @@ if (mek.key?.remoteJid === 'status@broadcast') {
   const senderJid = mek.key.participant || mek.key.remoteJid || "unknown@s.whatsapp.net";
   const mentionJid = senderJid.includes("@s.whatsapp.net") ? senderJid : senderJid + "@s.whatsapp.net";
 
+  // ✅ AUTO MESSAGE REACT (GLOBAL)
+    if (config.AUTO_REACT === "true" && !mek.key.fromMe) {
+        try {
+            const emojis = config.AUTO_REACT_EMOJIS.split(',');
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            await test.sendMessage(from, { react: { text: randomEmoji, key: mek.key } });
+        } catch (e) { console.error("React Error:", e); }
+    }
+
   if (config.AUTO_STATUS_SEEN === "true") {
     try {
       await test.readMessages([mek.key]);
