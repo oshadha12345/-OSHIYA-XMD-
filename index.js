@@ -449,38 +449,7 @@ const quoted = type == 'extendedTextMessage' && mek.message.extendedTextMessage.
 ensureSessionFile();
 
 app.get("/", (req, res) => {
-  res.send("╔══════════════════════════════════════╗
-║   ██████╗  ███████╗██╗  ██╗██╗██╗   
-║  ██╔═══██╗██╔════╝██║  ██║██║██║  
-║  ██║   ██║███████╗███████║██║██║   
-║  ██║   ██║╚════██║██╔══██║██║██║   
-║  ╚██████╔╝███████║██║  ██║██║██║   
-║   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚═╝   
-║                                   
-║      ✅💗 OSHIYA MD CONNECTED 💗✅   
-║                                    
-╠══════════════════════════════════════╣
-║ 🤖 BOT NAME  : OSHIYA MD   💗        
-║ 👑 OWNER     : OSHIYA 💗               
-║ 🌐 PLATFORM  : WhatsApp 💗         
-║ ⚙️ VERSION   : v1    💗         
-║ ⚡ STATUS    : ONLINE & ACTIVE   ✅   
-╠══════════════════════════════════════╣
-║ 🚀 SYSTEM INITIALIZED SUCCESSFULLY 
-║ 📡 ALL COMMANDS ARE READY TO USE    
-║                                    
-║ 💡 TYPE MENU TO GET COMMANDS    
-║ ❤️ POWERED BY OSHIYA TECH          
-╚══════════════════════════════════════╝");
+  res.send("Oshi connect");
 });
 
-app.listen(port, () => console.log(`
-╔════════════════════════════╗
-║  ██████╗  ███████╗██╗  ██╗██╗██╗
-║ ██╔═══██╗██╔════╝██║  ██║██║██║
-║ ██║   ██║███████╗███████║██║██║
-║ ██║   ██║╚════██║██╔══██║██║██║
-║ ╚██████╔╝███████║██║  ██║██║██║
-║  ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚═╝
-╚════════════════════════════╝
-`));
+app.listen(port, () => console.log(`official`));
