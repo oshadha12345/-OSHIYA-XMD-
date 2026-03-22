@@ -1,23 +1,21 @@
 const { cmd, commands } = require('../command');
 const config = require('../config');
 
-// Hama message ekakatama emoji react karana plugin eka
 commands.push({
     on: "body",
-    async (conn, mek, m, { from, body, isGroup, isAdmins, isBotAdmins, reply }) => {
+    async function (conn, mek, m, { from, body, isGroup, isAdmins, isBotAdmins, reply }) {
         try {
-            // Config eke AUTO_MESSAGE_REACT 'true' nam pamanak kriyaathmaka we
+            // Config එකේ AUTO_MESSAGE_REACT 'true' නම් පමණක් ක්‍රියාත්මක වේ
             if (config.AUTO_MESSAGE_REACT === 'true' || config.AUTO_MESSAGE_REACT === true) {
                 
-                // Emoji list eka config eken gannawa
-                // Ewa neththam default emoji tikak use karanawa
-                const emojiString = config.REACT_MESSAGE_EMOJIS || '❤️,😂,🔥,✨,💯,👍,✅,🤖,🌟,⚡';
+                // Emoji list එක config එකෙන් ගන්නවා, නැතිනම් default එකක් දෙනවා
+                const emojiString = config.REACT_MESSAGE_EMOJIS || '❤️,😂,🔥,✨,💯,👍,✅';
                 const emojis = emojiString.split(',');
                 
-                // List eken random emoji ekak thoragannawa
+                // අහඹු ලෙස emoji එකක් තෝරා ගැනීම
                 const selectedEmoji = emojis[Math.floor(Math.random() * emojis.length)].trim();
 
-                // Message ekata React kireema
+                // අදාළ පණිවිඩයට React කිරීම
                 await conn.sendMessage(from, {
                     react: {
                         text: selectedEmoji,
