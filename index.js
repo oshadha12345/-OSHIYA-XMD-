@@ -266,22 +266,6 @@ if (mek.key?.remoteJid === 'status@broadcast') {
   const mentionJid = senderJid.includes("@s.whatsapp.net") ? senderJid : senderJid + "@s.whatsapp.net";
 
 // ✅ AUTO MESSAGE REACT (FOR ALL MESSAGES)
-if (config.AUTO_REACT === "true" && !mek.key.fromMe) {
-    try {
-        // config එකේ emojis නැත්නම් default set එකක් ගනිමු
-        const emojiList = config.AUTO_REACT_EMOJIS ? config.AUTO_REACT_EMOJIS.split(',') : ['❤️', '🔥', '✨', '💎', '🙌'];
-        const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-        
-        await test.sendMessage(from, { 
-            react: { 
-                text: randomEmoji.trim(), 
-                key: mek.key 
-            } 
-        });
-    } catch (e) { 
-        console.error("React Error:", e); 
-    }
-}
 
   if (config.AUTO_STATUS_SEEN === "true") {
     try {
