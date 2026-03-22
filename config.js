@@ -10,7 +10,6 @@ OWNER_NAME: process.env.OWNER_NAME || "Oshiya💗",
 OWNER_NUMBER: '94712849964',
 AUTO_STATUS_SEND: process.env.AUTO_STATUS_SEND || "false",
 AUTO_MESSAGE_REACT: 'true', // true හෝ false ලෙස සකසන්න 
-REACT_MESSAGE_EMOJIS: '❤️,😂,🔥,✨,💯,👍,✅', 
 MODE: "public",
 PREFIX: ".",
 AUTO_STATUS_SEEN: 'false',
