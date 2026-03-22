@@ -169,5 +169,3 @@ cmd({
     await test.sendMessage(from, { text: "❌ දෝෂයක් වුණා!" });
   }
 });
-
-meke nikan number reply karama sub menu eka enawa ehema nathuwa  me message ekatama reply karama submenu eka hadanna
