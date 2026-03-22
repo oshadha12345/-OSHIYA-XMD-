@@ -9,7 +9,8 @@ SESSION_ID: process.env.SESSION_ID || "ᴏꜱʜɪʏᴀ~iB9gDDbQ#KlDjgP87WbzXJkjv
 OWNER_NAME: process.env.OWNER_NAME || "Oshiya💗",
 OWNER_NUMBER: '94712849964',
 AUTO_STATUS_SEND: process.env.AUTO_STATUS_SEND || "false",
-AUTO_MESSAGE_REACT: 'true', // true හෝ false ලෙස සකසන්න 
+AUTO_MESSAGE_REACT: process.env.AUTO_MESSAGE_REACT || 'true', 
+REACT_MESSAGE_EMOJIS: process.env.REACT_MESSAGE_EMOJIS || '❤️,😂,🔥,✨,💯,👍,✅',
 MODE: "public",
 PREFIX: ".",
 AUTO_STATUS_SEEN: 'false',
