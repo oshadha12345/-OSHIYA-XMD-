@@ -170,4 +170,4 @@ cmd({
   }
 });
 
-menu eka awama ekata reply karama vitharak wada karanna hadanna
+meke nikan number reply karama sub menu eka enawa ehema nathuwa  me message ekatama reply karama submenu eka hadanna
