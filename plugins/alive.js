@@ -1,80 +1,64 @@
 const { cmd } = require("../command");
 const config = require('../config');
+const { sendButtons } = require('gifted-btns'); // gifted-btns npm එක භාවිතා කිරීම
 
 cmd(
   {
     pattern: "alive",
     react: "✅",
-    desc: "Show bot status with interactive options",
+    desc: "Show bot status with UI buttons",
     category: "main",
     filename: __filename,
     fromMe: false,
   },
-  async (malvin, mek, m, { reply, from }) => {
+  async (malvin, mek, m, { from, pushname }) => {
     try {
       await malvin.sendPresenceUpdate("recording", from);
 
+      const prefix = config.PREFIX || '.';
+
       // Premium Alive Message Design
-      const aliveMessage = `┏━━━━━━━━━━━━━━━━━━━━┓
+      const aliveBody = `┏━━━━━━━━━━━━━━━━━━━━┓
 ┃   👑 *OSHIYA MD V1 STATUS* 👑
 ┗━━━━━━━━━━━━━━━━━━━━┛
 ┃ 🤖 *Status:* Online & Active
 ┃ ⚡ *Speed:* Fast Response
 ┃ 🔥 *Mode:* ${config.MODE.toUpperCase()}
 ┃ 💎 *Version:* V1.0.4
-┃ 👤 *User:* ${m.pushName || 'User'}
+┃ 👤 *User:* ${pushname || 'User'}
 ┗━━━━━━━━━━━━━━━━━━━━┛
-
-1️⃣  *Main Menu*
-2️⃣  *Ping*
-
-🔗 *Official Channel:* https://whatsapp.com/channel/your-link
-📂 *GitHub:* https://github.com/oshadha12345/-OSHIYA-XMD-
 
 > *Powered by Oshadha*`;
 
-      // පණිවිඩය යැවීම
-      const sentMsg = await malvin.sendMessage(
-        from,
-        {
-          image: {
-            url: "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg",
+      // gifted-btns හරහා බොත්තම් සහිත පණිවිඩය යැවීම
+      await sendButtons(malvin, from, {
+        text: aliveBody,
+        footer: '© 2026 OSHIYA-MD V1',
+        image: { url: "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg" },
+        aimode: true, // AI features සක්‍රීය කිරීමට
+        buttons: [
+          {
+            id: `${prefix}menu`, 
+            text: '📜 MAIN MENU' 
           },
-          caption: aliveMessage,
-        },
-        { quoted: mek }
-      );
-
-      // Reply එක Handle කරන කොටස
-      malvin.ev.on('messages.upsert', async (msgUpdate) => {
-        const newMsg = msgUpdate.messages[0];
-        if (!newMsg.message || newMsg.key.fromMe) return;
-        
-        const messageType = Object.keys(newMsg.message)[0];
-        const msgContent = (messageType === 'conversation') 
-            ? newMsg.message.conversation 
-            : (messageType === 'extendedTextMessage') 
-            ? newMsg.message.extendedTextMessage.text 
-            : '';
-
-        // අපි යැවූ alive මැසේජ් එකටමද reply කළේ කියා පරීක්ෂා කිරීම (Stanza ID check)
-        const contextInfo = newMsg.message.extendedTextMessage?.contextInfo;
-        const isReplyToAlive = contextInfo?.stanzaId === sentMsg.key.id;
-
-        if (isReplyToAlive) {
-            if (msgContent === '1') {
-                // Menu එක යැවීම
-                await malvin.sendMessage(from, { text: '.menu' }, { quoted: newMsg });
-            } else if (msgContent === '2') {
-                // Ping එක යැවීම
-                await malvin.sendMessage(from, { text: '.ping' }, { quoted: newMsg });
-            }
-        }
-      });
+          {
+            id: `${prefix}ping`, 
+            text: '📡 PING BOT' 
+          },
+          {
+            name: 'cta_url',
+            buttonParamsJson: JSON.stringify({
+              display_text: '📢 OFFICIAL CHANNEL',
+              url: 'https://whatsapp.com/channel/your-link'
+            })
+          }
+        ]
+      }, { quoted: mek });
 
     } catch (e) {
-      console.error("❌ Error in .alive command:", e);
-      reply("❌ Error while sending alive message!");
+      console.error("❌ Error in .alive button command:", e);
+      // බොත්තම් වැඩ නොකළහොත් සාමාන්‍ය මැසේජ් එකක් යැවීම
+      await malvin.sendMessage(from, { text: "❌ Button System Error!" }, { quoted: mek });
     }
   }
 );
