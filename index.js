@@ -27,7 +27,7 @@ const axios = require('axios');
 const path = require('path');
 const qrcode = require('qrcode-terminal');
 
-const { handlePresence, autoTyping, autoRecording } = require("./oshiya");
+
 const config = require('./config');
 const { sms, downloadMediaMessage } = require('./lib/msg');
 const {
@@ -107,7 +107,7 @@ async function connectToWA() {
 
       // ================= AUTO UPDATE ABOUT =================
       try {
-        const status = `OSHIYA-MD V1`;
+        const status = `OSHIYA-MD V1✅`;
         await test.updateProfileStatus(status);
         console.log("✅ Profile About updated successfully!");
       } catch (err) {
@@ -233,17 +233,6 @@ await test.sendMessage(botJid, {
 
     const mek = messages[0];
     if (!mek || !mek.message) return;
-    
-    // ================= AUTO TYPING / RECORDING =================
-const jid = mek.key.remoteJid;
-
-if (config.AUTO_TYPING) {
-  await autoTyping(test, jid);
-}
-
-if (config.AUTO_RECORDING) {
-  await autoRecording(test, jid);
-}
     mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
    
 
