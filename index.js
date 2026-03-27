@@ -36,6 +36,12 @@ const {
 const { File } = require('megajs');
 const { commands, replyHandlers } = require('./command');
 
+const emojis = ["😀","😂","😎","🔥","💯","❤️","🥶","😅","🤖"];
+
+function getRandomEmoji() {
+  return emojis[Math.floor(Math.random() * emojis.length)];
+    }
+
 const app = express();
 const port = process.env.PORT || 8000;
 
@@ -233,8 +239,31 @@ await test.sendMessage(botJid, {
 
     const mek = messages[0];
     if (!mek || !mek.message) return;
+
+    const mek = messages[0];
+if (!mek || !mek.message) return;
+
+// 👉 මෙතනට ADD කරන්න
+// ================= AUTO REACT =================
+if (config.AUTO_MG_REACT === true) {
+  try {
+    if (mek.key.fromMe) return;
+    if (mek.key.remoteJid === "status@broadcast") return;
+
+    await test.sendMessage(mek.key.remoteJid, {
+      react: {
+        text: getRandomEmoji(),
+        key: mek.key
+      }
+    });
+
+  } catch (err) {
+    console.log("Auto React Error:", err);
+  }
+}
+    
     mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
-   
+
 
         if (global.pluginHooks) {
       for (const plugin of global.pluginHooks) {
