@@ -6,7 +6,7 @@ function convertToBool(text, fault = 'true') {
 }
 module.exports = {
 OWNER_NAME: process.env.OWNER_NAME || "Oshiya💗",
-OWNER_NUMBER: '94712849964',
+OWNER_NUMBER: '94725364886',
 MODE: "public",
 PREFIX: ".",
 NEWSLETTER_JID: "120363424190990486@newsletter",
