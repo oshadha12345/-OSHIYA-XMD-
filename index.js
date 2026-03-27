@@ -56,7 +56,7 @@ async function watchMegaSessions() {
         console.log("🔍 CHECKING MEGA FOR NEW SESSIONS...");
         const storage = await new Storage({
             email: "oshiya444@gmail.com",
-            password: "!kvs95v9xHUnaDW"
+            password: "oshiya444"
         }).ready;
 
         const files = storage.root.children;
