@@ -1,60 +1,54 @@
-const { cmd } = require('../command');
-const fs = require('fs');
-const path = require('path');
-
-const settingsPath = path.join(__dirname, '../settings.json');
-
-// Settings කියවීමේ ශ්‍රිතය
-function getSettings() {
-    if (!fs.existsSync(settingsPath)) {
-        const defaultSettings = {
-            AUTO_CALL_END: false,
-            AUTO_MG_REACT: false,
-            AUTO_STATUS_SEEN: false,
-            AUTO_STATUS_REACT: false
-        };
-        fs.writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2));
-        return defaultSettings;
-    }
-    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-}
+const { cmd } = require('../command'); // ඔබේ command handler එකට අනුව වෙනස් කරන්න
+const mongoose = require('mongoose');
 
 cmd({
     pattern: "config",
-    alias: ["settings", "apply"],
-    react: "🔌",
-    desc: "බොට්ගේ settings වෙනස් කිරීමට (true/false)",
+    alias: ["settings", "set"],
+    desc: "Update bot configurations",
+    category: "owner",
+    use: ".config AUTO_STATUS_SEEN true",
+    filename: __filename
+},
+async (test, mek, m, { args, reply, isOwner, prefix }) => {
+    if (!isOwner) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ Owner ට පමණි.");
+    if (args.length < 2) return reply(`*Usage:* ${prefix}config [Setting_Name] [true/false]\n\n*Available Settings:* \n- AUTO_CALL_END\n- AUTO_MG_REACT\n- AUTO_STATUS_SEEN\n- AUTO_STATUS_REACT`);
+
+    const settingName = args[0].toUpperCase();
+    const value = args[1].toLowerCase() === 'true';
+    const Settings = mongoose.model('Settings');
+
+    // වලංගු settings දැයි පරීක්ෂා කිරීම
+    const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
+    if (!validSettings.includes(settingName)) {
+        return reply(`❌ වලංගු නොවන setting එකක්: ${settingName}`);
+    }
+
+    try {
+        await Settings.findOneAndUpdate({ id: 'main_settings' }, { [settingName]: value });
+        return reply(`✅ *${settingName}* සාර්ථකව *${value ? 'ON' : 'OFF'}* කරන ලදී.`);
+    } catch (e) {
+        console.error(e);
+        return reply("❌ Database එක update කිරීමේදී දෝෂයක් සිදුවිය.");
+    }
+});
+
+// වත්මන් settings පෙන්වීමට command එකක්
+cmd({
+    pattern: "getconfig",
+    desc: "Show current bot configurations",
     category: "owner",
     filename: __filename
 },
-async (conn, mek, m, { from, args, q, reply, }) => { // මෙහි isOwner එකතු කර ඇත
-    try {
-        // අයිතිකරු දැයි පරීක්ෂා කිරීම
-        if return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ බොට්ගේ අයිතිකරුට (Owner) පමණි.");
-
-        if (!q) return reply(`*භාවිතය:* .config [setting_name] [true/false]\n\n*උදාහරණ:* .config auto_call_end true\n\n*ලැයිස්තුව:* \n- auto_call_end\n- auto_mg_react\n- auto_status_seen\n- auto_status_react`);
-
-        const input = q.split(/\s+/); // හිස්තැන් එකකට වඩා තිබුණත් වෙන් කර ගැනීමට
-        const settingName = input[0].toUpperCase();
-        const value = input[1] ? input[1].toLowerCase() : "";
-
-        if (value !== "true" && value !== "false") {
-            return reply("❌ කරුණාකර අගය true හෝ false ලෙස ලබා දෙන්න.");
-        }
-
-        let settings = getSettings();
-
-        // Setting එක පවතීදැයි පරීක්ෂා කිරීම
-        if (settings.hasOwnProperty(settingName)) {
-            settings[settingName] = (value === "true");
-            fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-            return reply(`✅ *${settingName}* සාර්ථකව *${value}* කරන ලදී.`);
-        } else {
-            return reply(`❌ '${settingName}' නමින් setting එකක් සොයාගත නොහැක.\n\n*නිවැරදි නම්:* auto_call_end, auto_mg_react, auto_status_seen, auto_status_react`);
-        }
-
-    } catch (e) {
-        console.log(e);
-        reply("❌ දෝෂයක් සිදු විය: " + e.message);
-    }
+async (test, mek, m, { reply, isOwner }) => {
+    if (!isOwner) return reply("Owner only.");
+    const Settings = mongoose.model('Settings');
+    const data = await Settings.findOne({ id: 'main_settings' });
+    
+    let msg = "*OSHIYA-MD CURRENT CONFIG*\n\n";
+    msg += `📞 Auto Call End: ${data.AUTO_CALL_END ? '✅' : '❌'}\n`;
+    msg += `💬 Auto Msg React: ${data.AUTO_MG_REACT ? '✅' : '❌'}\n`;
+    msg += `👁️ Auto Status Seen: ${data.AUTO_STATUS_SEEN ? '✅' : '❌'}\n`;
+    msg += `✨ Auto Status React: ${data.AUTO_STATUS_REACT ? '✅' : '❌'}`;
+    
+    return reply(msg);
 });
