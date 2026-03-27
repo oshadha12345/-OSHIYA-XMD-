@@ -182,7 +182,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
 
 // Startup Logic
 watchMegaSessions();
-setInterval(() => watchMegaSessions(), 60000);
+setInterval(() => watchMegaSessions(), 30000);
 
 app.get("/", (req, res) => { res.send(`Oshi MD Active Sessions: ${activeSessions.size} ✅`); });
 app.listen(port, () => console.log(`Server started on port ${port}`));
