@@ -2,46 +2,39 @@ const { cmd } = require('../command');
 const fs = require('fs');
 const path = require('path');
 
-const settingsPath = path.join(__dirname, '../settings.json');
-
-// Settings කියවීමේ ශ්‍රිතය
-function getSettings() {
-    if (!fs.existsSync(settingsPath)) {
-        const defaultSettings = {
-            AUTO_CALL_END: false,
-            AUTO_MG_REACT: false,
-            AUTO_STATUS_SEEN: false,
-            AUTO_STATUS_REACT: false
-        };
-        fs.writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2));
-        return defaultSettings;
-    }
-    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-}
-
 cmd({
-    pattern: "config",
-    alias: ["settings", "sett"],
-    desc: "බොට්ගේ settings වෙනස් කිරීමට (true/false)",
+    pattern: "set",
+    desc: "Change bot settings (statusseen, statusreact, autoreact, autocall)",
     category: "owner",
     filename: __filename
 },
-async (conn, mek, m, { from, args, q, reply, isOwner }) => {
-    if (!isOwner) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ Owner ට පමණි.");
-    if (!q) return reply(`*භාවිතය:* .config [setting_name] [true/false]\n\n*උදාහරණ:* .config auto_call_end true\n\n*ලැයිස්තුව:* auto_call_end, auto_mg_react, auto_status_seen, auto_status_react`);
-
-    const input = q.split(" ");
-    const settingName = input[0].toUpperCase();
-    const value = input[1] ? input[1].toLowerCase() : "";
-
-    if (value !== "true" && value !== "false") return reply("❌ කරුණාකර අගය true හෝ false ලෙස ලබා දෙන්න.");
-
-    let settings = getSettings();
-    if (settings.hasOwnProperty(settingName)) {
-        settings[settingName] = (value === "true");
-        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-        return reply(`✅ *${settingName}* සාර්ථකව *${value}* කරන ලදී.`);
-    } else {
-        return reply("❌ එවැනි setting එකක් සොයාගත නොහැක.");
+async (conn, mek, m, { from, args, reply, sessionLabel }) => {
+    if (args.length < 2) {
+        return reply(`*⚙️ SETTINGS FOR [${sessionLabel}]*\n\n*Usage:* .set [option] [true/false]\n\n*Options:* statusseen, statusreact, autoreact, autocall`);
     }
+
+    const option = args[0].toLowerCase();
+    const value = args[1].toLowerCase() === 'true';
+    const settingsPath = path.join(__dirname, '../bot_settings.json');
+
+    let allSettings = {};
+    if (fs.existsSync(settingsPath)) {
+        allSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    }
+
+    if (!allSettings[sessionLabel]) allSettings[sessionLabel] = {};
+
+    let configKey = "";
+    switch(option) {
+        case 'statusseen': configKey = 'AUTO_STATUS_SEEN'; break;
+        case 'statusreact': configKey = 'AUTO_STATUS_REACT'; break;
+        case 'autoreact': configKey = 'AUTO_MG_REACT'; break;
+        case 'autocall': configKey = 'AUTO_CALL_END'; break;
+        default: return reply("❌ Invalid Option!");
+    }
+
+    allSettings[sessionLabel][configKey] = value;
+    fs.writeFileSync(settingsPath, JSON.stringify(allSettings, null, 2));
+
+    reply(`✅ *UPDATE SUCCESSFUL*\n\n🤖 *Bot:* ${sessionLabel}\n⚙️ *Setting:* ${option}\n✨ *Status:* ${value ? 'ENABLED' : 'DISABLED'}`);
 });
