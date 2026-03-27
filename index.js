@@ -23,7 +23,7 @@ const port = process.env.PORT || 8000;
 const prefix = config.PREFIX || '.';
 const settingsPath = path.join(__dirname, 'settings.json');
 
-// --- Helper: Dynamic Settings කියවීමට ---
+// --- Helper: Settings කියවීමට ---
 function getCurrentSettings() {
     if (!fs.existsSync(settingsPath)) {
         return { 
@@ -33,7 +33,11 @@ function getCurrentSettings() {
             AUTO_STATUS_REACT: false 
         };
     }
-    return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    try {
+        return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (e) {
+        return {};
+    }
 }
 
 const activeSessions = new Set();
@@ -41,6 +45,14 @@ const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅"
 
 function getLocalRandomEmoji() {
     return emojis[Math.floor(Math.random() * emojis.length)];
+}
+
+// ෆෝල්ඩරයක් සම්පූර්ණයෙන්ම මකා දැමීමේ function එක
+function deleteSessionFolder(folderPath) {
+    if (fs.existsSync(folderPath)) {
+        fs.rmSync(folderPath, { recursive: true, force: true });
+        console.log(`🗑️ Deleted invalid session folder: ${folderPath}`);
+    }
 }
 
 async function watchMegaSessions() {
@@ -56,13 +68,17 @@ async function watchMegaSessions() {
 
         for (let file of credFiles) {
             if (activeSessions.has(file.name)) continue;
+            
             console.log(`✨ New session detected: [${file.name}]`);
             const sessionName = file.name.replace('.json', '');
             const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionName}/`);
             const credsFile = path.join(folderPath, 'creds.json');
+            
             if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+            
             const data = await file.downloadBuffer();
             fs.writeFileSync(credsFile, data);
+            
             activeSessions.add(file.name);
             connectToWA(folderPath, sessionName, file.name);
         }
@@ -84,35 +100,33 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         version,
         syncFullHistory: false,
         markOnlineOnConnect: true,
-        generateHighQualityLinkPreview: true,
     });
 
     test.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
+        
         if (connection === 'close') {
-            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) connectToWA(authPath, sessionLabel, originalFileName);
-            else activeSessions.delete(originalFileName);
+            const statusCode = lastDisconnect?.error?.output?.statusCode;
+            const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+            if (shouldReconnect) {
+                console.log(`🔄 Reconnecting session: [${sessionLabel}]...`);
+                connectToWA(authPath, sessionLabel, originalFileName);
+            } else {
+                // සෙෂන් එක Logged Out නම් හෝ වැඩ කරන්නේ නැතිනම් දත්ත මකා දමයි
+                console.log(`❌ Session [${sessionLabel}] is INVALID/LOGGED OUT. Deleting...`);
+                activeSessions.delete(originalFileName);
+                deleteSessionFolder(authPath);
+            }
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
             const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
             await test.sendMessage(owner, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
-            
-            // Plugins load කිරීම (මෙහිදී අලුත් plugin එකත් load වේ)
-            const pluginPath = path.join(__dirname, 'plugins');
-            if (fs.existsSync(pluginPath)) {
-                fs.readdirSync(pluginPath).forEach((plugin) => {
-                    if (path.extname(plugin).toLowerCase() === ".js") {
-                        try { require(`./plugins/${plugin}`); } catch (e) {}
-                    }
-                });
-            }
         }
     });
 
     test.ev.on('creds.update', saveCreds);
 
-    // Call Handling (Settings වලින් බලයි)
     test.ev.on("call", async (callData) => {
         const currentSett = getCurrentSettings();
         if (currentSett.AUTO_CALL_END) {
@@ -129,17 +143,11 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const mek = messages[0];
         if (!mek || !mek.message) return;
         const from = mek.key.remoteJid;
-        mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
-
-        // සෑම පණිවිඩයකදීම නැවුම් settings කියවන්න
+        
+        // Settings load කිරීම
         const currentSett = getCurrentSettings();
 
-        // Auto React
-        if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
-            try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
-        }
-
-        // Status Seen/React
+        // Auto Status/React logic
         if (from === 'status@broadcast') {
             if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
             if (currentSett.AUTO_STATUS_REACT) {
@@ -149,6 +157,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             }
         }
 
+        // Command handling
         const type = getContentType(mek.message);
         const body = (type === 'conversation') ? mek.message.conversation :
                      (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
@@ -160,19 +169,17 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const args = body.trim().split(/ +/).slice(1);
         const q = args.join(' ');
 
-        const sender = mek.key.fromMe ? test.user.id : (mek.key.participant || mek.key.remoteJid);
-        const isGroup = from.endsWith('@g.us');
-        const pushname = mek.pushName || 'User';
-        const botNumber2 = await jidNormalizedUser(test.user.id);
-        const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
-
         if (isCmd) {
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
             if (cmd) {
-                if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
+                const sender = mek.key.fromMe ? test.user.id : (mek.key.participant || mek.key.remoteJid);
+                const pushname = mek.pushName || 'User';
+                const botNumber2 = await jidNormalizedUser(test.user.id);
+                const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
+
                 try {
                     cmd.function(test, mek, sms(test, mek), {
-                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, reply
+                        from, body, isCmd, command: commandName, args, q, isGroup: from.endsWith('@g.us'), sender, pushname, botNumber2, reply
                     });
                 } catch (e) { console.error(e); }
             }
@@ -180,7 +187,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     });
 }
 
-// Startup Logic
+// Startup
 watchMegaSessions();
 setInterval(() => watchMegaSessions(), 30000);
 
