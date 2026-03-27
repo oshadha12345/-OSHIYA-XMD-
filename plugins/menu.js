@@ -1,34 +1,27 @@
 const { cmd, commands } = require("../command");
-const config = require('../config');
 const moment = require("moment-timezone");
 
-// ================= STATE =================
-// මෙනු එකේ state එක තාවකාලිකව තබා ගැනීමට
+// User pending menu state
 const pendingMenu = {};
 
-// ================= CONFIG =================
-const botName = "𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐕1";
-const ownerName = "𝐎𝐬𝐡𝐚𝐝𝐡𝐚 💗";
-const prefix = config.PREFIX || '.';  
+// Header image
+const headerImage = "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg";
 
-const headerImage = "https://files.catbox.moe/imxhbb.png";
+// ====== CONFIG ======
+const botName = "OSHIYA-MD";
+const ownerName = "OSHADHA";
+const prefix = ".";
+// ====================
 
-// 🔊 Voice direct mp3 link
-const autoVoice = "https://github.com/oshadha12345/images/raw/refs/heads/main/Voice/Parano%20(Tiktok%20Version)%20-%20Frozy%20Ft.%20DDB%20%5BEdit%20Audio%5D(MP3_160K).mp3";
-// ==========================================
-
-
-// ===== ᴀʙᴄ SMALL CAPS CONVERTER =====
+// Fancy Bold Converter (ඔයාට වෙනස් කරලා fancy letters දාන්න පුළුවන්)
 function toFancy(text) {
   const normal = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const fancy  = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ";
-
+  const fancy  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // දැන් simple
   return text.toUpperCase().split("").map(c => {
     const i = normal.indexOf(c);
     return i !== -1 ? fancy[i] : c;
   }).join("");
 }
-
 
 // ========================
 // ===== MAIN MENU =======
@@ -39,124 +32,132 @@ cmd({
   desc: "Show command categories",
   category: "main",
   filename: __filename
-}, async (conn, m, msg, { from, sender, pushname }) => {
-
+}, async (test, m, msg, { from, sender, pushname }) => {
   try {
+    // React to message
+    await test.sendMessage(from, { react: { text: "🌸", key: m.key } });
+
     const date = moment().tz("Asia/Colombo").format("YYYY-MM-DD");
     const time = moment().tz("Asia/Colombo").format("HH:mm:ss");
 
     if (!commands || !Array.isArray(commands) || commands.length === 0) {
-      return conn.sendMessage(from, { text: "❌ No commands found!" });
+      return test.sendMessage(from, { text: "❌ No commands found!" });
     }
 
     // Organize commands by category
     const commandMap = {};
-    commands.forEach((command) => {
-      if (command.dontAddCommandList || !command.pattern) return;
+    for (const command of commands) {
+      if (command.dontAddCommandList) continue;
       const category = (command.category || "MISC").toUpperCase();
       if (!commandMap[category]) commandMap[category] = [];
       commandMap[category].push(command);
-    });
+    }
 
-    const categories = Object.keys(commandMap).sort();
-    
-    // ===== AUTO VOICE SEND =====
-    await conn.sendMessage(from, {
-      audio: { url: autoVoice },
-      mimetype: "audio/mp4",
-      ptt: true // true දැමීමෙන් voice note එකක් ලෙස යයි
-    }, { quoted: m });
+    const categories = Object.keys(commandMap);
+    if (categories.length === 0) {
+      return test.sendMessage(from, { text: "❌ No categories available!" });
+    }
 
-    // ===== BUILD MENU TEXT =====
+    // Build menu text
     let menuText = `╔═══━━━─ • ─━━━═══╗
-   👑  ${toFancy(botName)}  👑
+   👑  𝐎𝐒𝐇𝐈𝐘𝐀 - 𝐌𝐃  👑
 ╚═══━━━─ • ─━━━═══╝
 
-╭━━━〔 🧬 ɪɴꜰᴏ 〕━━━╮
-┃ 👑 ᴏᴡɴᴇʀ   : ${ownerName}
-┃ 👤 ᴜꜱᴇʀ    : ${pushname}
-┃ 📅 ᴅᴀᴛᴇ    : ${date}
-┃ ⏰ ᴛɪᴍᴇ    : ${time}
-┃ ⚙️ ᴘʀᴇꜰɪx  : ${prefix}
+╭━━━〔 👤 𝐈𝐍𝐅𝐎 〕━━━╮
+┃ 👑 𝐎𝐰𝐧𝐞𝐫   : ${ownerName}
+┃ 👤 𝐔𝐬𝐞𝐫    : ${pushname}
+┃ 📅 𝐃𝐚𝐭𝐞    : ${date}
+┃ ⏰ 𝐓𝐢𝐦𝐞    : ${time}
+┃ ⚙️ 𝐏𝐫𝐞𝐟𝐢𝐱  : ${prefix}
 ╰━━━━━━━━━━━━━━━━━━╯
 
-╭━━〔✧ ᴄᴀᴛᴇɢᴏʀɪᴇꜱ ✧〕━━╮
+╭━━〔✧ *CATEGORIES* ✧〕━━╮
 `;
 
     categories.forEach((cat, i) => {
-      menuText += `│ ${i + 1}. ${toFancy(cat)} 〔 ${commandMap[cat].length} 〕\n`;
+      const styled = toFancy(cat);
+      menuText += `│ ${i + 1}. ${styled} 〔 ${commandMap[cat].length} 〕\n`;
     });
 
     menuText += `╰━━━━━━━━━━━━━━━━━━╯\n`;
-    menuText += `\n🌷 *Reply with a category number to see commands.*`;
+    menuText += `\n𝐑𝐞𝐩𝐥𝐲 𝐰𝐢𝐭𝐡 𝐜𝐚𝐭𝐞𝐠𝐨𝐫𝐲 𝐧𝐮𝐦𝐛𝐞𝐫 🌸`;
 
-    // ===== SEND MENU =====
-    const sentMsg = await conn.sendMessage(from, {
+    // Send menu
+    await test.sendMessage(from, {
       image: { url: headerImage },
       caption: menuText
     }, { quoted: m });
 
-    // ===== SAVE STATE FOR REPLY =====
-    // මෙතනදී sender ගේ ID එක යටතේ categories ටික save කරගන්නවා reply එක check කරන්න
-    pendingMenu[from] = { 
-        userId: sender, 
-        categories: categories, 
-        commandMap: commandMap,
-        messageId: sentMsg.key.id 
-    };
+    // Save pending menu for user
+    pendingMenu[sender] = { step: "category", commandMap, categories };
 
-    // විනාඩි 5 කට පසු state එක delete කරන්න
+    // Auto expire 2 minutes
     setTimeout(() => {
-      delete pendingMenu[from];
-    }, 5 * 60 * 1000);
+      delete pendingMenu[sender];
+    }, 2 * 60 * 1000);
 
   } catch (err) {
-    console.error("Menu Error:", err);
-    await conn.sendMessage(from, { text: "❌ Something went wrong!" });
+    console.error("Error in menu command:", err);
+    await test.sendMessage(from, { text: "❌ Something went wrong!" });
   }
 });
 
-
-// ==============================
-// ===== REPLY HANDLER Logic =====
-// ==============================
-// මෙතනදී වෙන්නේ ඕනෑම message එකක් ආ විට එය අංකයක්ද සහ කලින් මෙනු එක ඕපන් කරලාද බලන එකයි
+// ========================
+// ===== CATEGORY SELECT =====
+// ========================
 cmd({
-    on: "body"
-}, async (conn, m, msg, { from, body, sender }) => {
-    const input = body.trim();
-    
-    // ඉදිරියෙන් prefix එක තිබේ නම් හෝ අංකයක් නොවේ නම් process කරන්නේ නැත
-    if (!pendingMenu[from] || isNaN(input)) return;
-    
-    const { userId, categories, commandMap } = pendingMenu[from];
+  filter: (text, { sender }) =>
+    pendingMenu[sender] &&
+    pendingMenu[sender].step === "category" &&
+    /^[1-9][0-9]*$/.test(text.trim())
+}, async (test, m, msg, { from, body, sender }) => {
 
-    // අංකය අදාළ category පරාසය ඇතුළේ තිබේදැයි බලයි
-    const index = parseInt(input) - 1;
-    if (index >= 0 && index < categories.length) {
-        
-        const selectedCategory = categories[index];
-        const cmdsInCategory = commandMap[selectedCategory];
+  try {
+    await test.sendMessage(from, { react: { text: "📂", key: m.key } });
 
-        let cmdText = `╭━───❰ ${toFancy(selectedCategory)} ❱───━╮\n`;
+    const pending = pendingMenu[sender];
+    if (!pending) return;
 
-        cmdsInCategory.forEach((c, i) => {
-          cmdText += `
+    const { commandMap, categories } = pending;
+    const index = parseInt(body.trim(), 10) - 1;
+
+    if (index < 0 || index >= categories.length) {
+      return await test.sendMessage(from, { text: "❌ වැරදි number එකක්." });
+    }
+
+    const selectedCategory = categories[index];
+    const cmdsInCategory = commandMap[selectedCategory];
+
+    let cmdText = `
+╭━───❰ ${selectedCategory} ❱───━╮
+`;
+
+    cmdsInCategory.forEach((c, i) => {
+      const patterns = [c.pattern]; // alias එක ignore කරලා
+      cmdText += `
 ╭─❍ ${i + 1}
-│ ✧ ᴄᴏᴍᴍᴀɴᴅ : ${prefix}${c.pattern}
-│ ✧ ɪɴꜰᴏ    : ${c.desc || "No description"}
+│ ✧ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 : ${patterns.join(" | ")}
+│ ✧ 𝐈𝐍𝐅𝐎    : ${c.desc || "No description"}
 ╰───────────────❍
 `;
-        });
+    });
 
-        cmdText += `\n*🌸 TOTAL COMMANDS: ${cmdsInCategory.length}*`;
+    cmdText += `
+╭━━━━━━━━━━━━━━━━━━╮
+│ 🌸 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 : ${cmdsInCategory.length}
+╰━━━━━━━━━━━━━━━━━━╯
+`;
 
-        await conn.sendMessage(from, {
-          image: { url: headerImage },
-          caption: cmdText
-        }, { quoted: m });
+    await test.sendMessage(from, {
+      image: { url: headerImage },
+      caption: cmdText
+    }, { quoted: m });
 
-        // Category එක පෙන්නුවාට පසු state එක clear කරන්න (අවශ්‍ය නම් පමණක්)
-        // delete pendingMenu[from];
-    }
+    // 🔹 menu state keep කරනවා, so user repeat කරන්න පුළුවන්
+    // delete pendingMenu[sender]; // comment this line
+
+  } catch (err) {
+    console.error("Error in category selection:", err);
+    await test.sendMessage(from, { text: "❌ දෝෂයක් වුණා!" });
+  }
 });
