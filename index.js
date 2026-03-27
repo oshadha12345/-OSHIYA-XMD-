@@ -12,79 +12,81 @@ const fs = require('fs');
 const P = require('pino');
 const express = require('express');
 const path = require('path');
-const { Storage } = require('megajs'); // MEGA library eka
+const { Storage } = require('megajs');
 
 const config = require('./config');
 const { sms } = require('./lib/msg');
-const { getRandomEmoji } = require('./lib/functions'); // Meka lib eke naththan pahatha function eka use wenawa
 const { commands } = require('./command');
 
 const app = express();
 const port = process.env.PORT || 8000;
 const prefix = config.PREFIX || '.';
 
-// Emoji list ekak (Kalin thibuna widiyatama)
+// දැනට ක්‍රියාත්මක වන සෙෂන් මතක තබා ගැනීමට
+const activeSessions = new Set();
+
 const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
 function getLocalRandomEmoji() {
     return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
 /**
- * MEGA Account eken creds.json files okkoma kiyawaa 
- * ewa session folders walata wen karaganeema.
+ * MEGA ගිණුම පරීක්ෂා කර අලුත් සෙෂන් තිබේ නම් ඒවා සම්බන්ධ කිරීම
  */
-async function ensureSessionFile() {
+async function watchMegaSessions() {
     try {
-        console.log("🔐 LOGGING INTO MEGA ACCOUNT...");
+        console.log("🔍 CHECKING MEGA FOR NEW SESSIONS...");
         
         const storage = await new Storage({
             email: "oshiya444@gmail.com",
             password: "!kvs95v9xHUnaDW"
         }).ready;
 
-        // Account eke thiyena okkoma files check karanawa
         const files = storage.root.children;
+        // .json ගොනු පමණක් ලබා ගැනීම
         const credFiles = files.filter(f => f.name.endsWith('.json'));
 
         if (credFiles.length === 0) {
-            console.error('❌ No creds.json files found in MEGA account.');
+            console.log('ℹ️ No creds.json files found in MEGA.');
             return;
         }
 
-        console.log(`📂 Found ${credFiles.length} potential sessions. Starting...`);
+        for (let file of credFiles) {
+            // දැනටමත් මෙම ෆයිල් එකෙන් බොට් කෙනෙක් රන් වෙනවා නම් මගහරින්න
+            if (activeSessions.has(file.name)) continue;
 
-        for (let [index, file] of credFiles.entries()) {
-            const sessionID = `session_${index + 1}`;
-            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
+            console.log(`✨ New session detected: [${file.name}]`);
+            
+            // සෙෂන් එකට අද්විතීය නමක් ලබා දීම (ෆයිල් එකේ නම පදනම් කරගෙන)
+            const sessionName = file.name.replace('.json', '');
+            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionName}/`);
             const credsFile = path.join(folderPath, 'creds.json');
 
-            // Folder eka nathan hadanawa
             if (!fs.existsSync(folderPath)) {
                 fs.mkdirSync(folderPath, { recursive: true });
             }
 
-            // File eka download karaa
+            // MEGA එකෙන් බාගත කර සේව් කිරීම
             const data = await file.downloadBuffer();
             fs.writeFileSync(credsFile, data);
             
-            console.log(`✅ Session [${file.name}] saved as ${sessionID}`);
+            // සෙෂන් එක active ලෙස ලකුණු කිරීම
+            activeSessions.add(file.name);
             
-            // Bot instance eka start kirima (RAM eka hira novanna delay ekak damma)
-            setTimeout(() => {
-                connectToWA(folderPath, sessionID);
-            }, index * 5000); 
+            // බොට් සම්බන්ධ කිරීම
+            connectToWA(folderPath, sessionName, file.name);
         }
 
     } catch (err) {
-        console.error("❌ MEGA Login Error:", err);
+        console.error("❌ MEGA Watcher Error:", err);
     }
 }
 
 /**
- * Thani bot connection ekak hadana main function eka
+ * WhatsApp සම්බන්ධතාවය ගොඩනැගීම
  */
-async function connectToWA(authPath, sessionLabel) {
-    console.log(`🚀 CONNECTING OSHIYA-MD [${sessionLabel}]`);
+async function connectToWA(authPath, sessionLabel, originalFileName) {
+    console.log(`🚀 STARTING INSTANCE: [${sessionLabel}]`);
     
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
     const { version } = await fetchLatestBaileysVersion();
@@ -95,28 +97,30 @@ async function connectToWA(authPath, sessionLabel) {
         browser: Browsers.macOS("Firefox"),
         auth: state,
         version,
-        syncFullHistory: false, // RAM eka ithuru kara ganeemata
+        syncFullHistory: false,
         markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true,
     });
 
-    // --- CONNECTION UPDATES ---
     test.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) connectToWA(authPath, sessionLabel);
+            if (shouldReconnect) {
+                connectToWA(authPath, sessionLabel, originalFileName);
+            } else {
+                console.log(`🔴 Session [${sessionLabel}] logged out. Removing...`);
+                activeSessions.delete(originalFileName);
+            }
         } else if (connection === 'open') {
-            console.log(`✅ OSHIYA-XMD [${sessionLabel}] STARTED 💫`);
+            console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
 
-            try {
-                await test.updateProfileStatus(`OSHIYA-MD V1 Active ✅`);
-            } catch (e) {}
+            try { await test.updateProfileStatus(`OSHIYA-MD Active ✅`); } catch (e) {}
 
             const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
-            await test.sendMessage(owner, { text: `𝐑𝐄𝐒𝐓𝐀𝐑𝐓𝐈𝐍𝐆 [${sessionLabel}] . . . ✅` });
+            await test.sendMessage(owner, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
 
-            // Plugins Loading
+            // Plugins Load කිරීම
             const pluginPath = path.join(__dirname, 'plugins');
             if (fs.existsSync(pluginPath)) {
                 fs.readdirSync(pluginPath).forEach((plugin) => {
@@ -130,7 +134,7 @@ async function connectToWA(authPath, sessionLabel) {
 
     test.ev.on('creds.update', saveCreds);
 
-    // --- CALL HANDLING ---
+    // Call Handling
     test.ev.on("call", async (callData) => {
         if (config.AUTO_CALL_END === "true" || config.AUTO_CALL_END === true) {
             for (let call of callData) {
@@ -142,7 +146,7 @@ async function connectToWA(authPath, sessionLabel) {
         }
     });
 
-    // --- MESSAGE HANDLING ---
+    // Message Handling
     test.ev.on('messages.upsert', async ({ messages }) => {
         const mek = messages[0];
         if (!mek || !mek.message) return;
@@ -169,7 +173,6 @@ async function connectToWA(authPath, sessionLabel) {
             }
         }
 
-        // Command logic
         const type = getContentType(mek.message);
         const body = (type === 'conversation') ? mek.message.conversation :
                      (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
@@ -201,9 +204,19 @@ async function connectToWA(authPath, sessionLabel) {
     });
 }
 
-// Startup
-ensureSessionFile();
+// --- STARTUP LOGIC ---
+
+// 1. මුලින්ම MEGA එක පරීක්ෂා කරන්න
+watchMegaSessions();
+
+// 2. සෑම විනාඩි 5 කට වරක් ස්වයංක්‍රීයව අලුත් ෆයිල් තිබේදැයි බලන්න (300,000ms = 5 mins)
+setInterval(() => {
+    watchMegaSessions();
+}, 120000);
 
 // Express Server
-app.get("/", (req, res) => { res.send("Oshi MD Multiple Sessions Active ✅"); });
+app.get("/", (req, res) => { 
+    res.send(`Oshi MD Active Sessions: ${activeSessions.size} ✅`); 
+});
+
 app.listen(port, () => console.log(`Server started on port ${port}`));
