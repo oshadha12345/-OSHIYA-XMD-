@@ -21,14 +21,14 @@ function getSettings() {
 
 cmd({
     pattern: "config",
-    alias: ["settings", "sett"],
-    react: "🙂",
+    alias: ["settings", "apply"],
+    react: "🔌",
     desc: "බොට්ගේ settings වෙනස් කිරීමට (true/false)",
     category: "owner",
     filename: __filename
 },
-async (conn, mek, m, { from, args, q, reply, isOwner }) => {
-    if (!isOwner) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ Owner ට පමණි.");
+async (conn, mek, m, { from, args, q, reply, isMe }) => {
+    if (!isMe) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ Owner ට පමණි.");
     if (!q) return reply(`*භාවිතය:* .config [setting_name] [true/false]\n\n*උදාහරණ:* .config auto_call_end true\n\n*ලැයිස්තුව:* auto_call_end, auto_mg_react, auto_status_seen, auto_status_react`);
 
     const input = q.split(" ");
