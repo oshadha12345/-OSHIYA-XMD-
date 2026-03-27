@@ -1,19 +1,16 @@
 const { cmd } = require('../command');
-// lib/mongodb.js එකෙන් Settings model එක import කරගන්න
 const { Settings } = require('../lib/mongodb'); 
 
 cmd({
     pattern: "config",
     alias: ["settings", "set"],
     desc: "Update bot configurations",
-    category: "owner",
+    category: "owner", // ඔබට අවශ්‍ය නම් මෙය "main" ලෙස වෙනස් කළ හැක
     use: ".config AUTO_STATUS_SEEN true",
     filename: __filename
 },
-async (test, mek, m, { args, reply, isOwner, prefix }) => {
+async (test, mek, m, { args, reply, prefix }) => { // isOwner ඉවත් කරන ලදී
     try {
-        if (!isOwner) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ Owner ට පමණි.");
-        
         // Args පරීක්ෂාව
         if (args.length < 2) {
             return reply(`*OSHIYA-MD CONFIGURATION*\n\n*Usage:* ${prefix}config [Setting_Name] [true/false]\n\n*Available Settings:* \n- AUTO_CALL_END\n- AUTO_MG_REACT\n- AUTO_STATUS_SEEN\n- AUTO_STATUS_REACT`);
@@ -22,7 +19,6 @@ async (test, mek, m, { args, reply, isOwner, prefix }) => {
         const settingName = args[0].toUpperCase();
         const inputVal = args[1].toLowerCase();
         
-        // වලංගු settings දැයි පරීක්ෂා කිරීම
         const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
         
         if (!validSettings.includes(settingName)) {
@@ -36,7 +32,7 @@ async (test, mek, m, { args, reply, isOwner, prefix }) => {
         const value = inputVal === 'true';
 
         // Database එක update කිරීම
-        const updated = await Settings.findOneAndUpdate(
+        await Settings.findOneAndUpdate(
             { id: 'main_settings' }, 
             { [settingName]: value }, 
             { upsert: true, new: true }
@@ -58,15 +54,18 @@ cmd({
     category: "owner",
     filename: __filename
 },
-async (test, mek, m, { reply, isOwner }) => {
+async (test, mek, m, { reply, prefix }) => { // isOwner සහ අනවශ්‍ය variables ඉවත් කරන ලදී
     try {
-        if (!isOwner) return reply("Owner only.");
-
         let data = await Settings.findOne({ id: 'main_settings' });
         
-        // දත්ත නොමැති නම් default දත්ත සාදන්න
         if (!data) {
-            data = await Settings.create({ id: 'main_settings' });
+            data = await Settings.create({ 
+                id: 'main_settings',
+                AUTO_CALL_END: false,
+                AUTO_MG_REACT: false,
+                AUTO_STATUS_SEEN: false,
+                AUTO_STATUS_REACT: false 
+            });
         }
         
         let msg = "⚙️ *OSHIYA-MD CURRENT CONFIG*\n\n";
@@ -83,5 +82,3 @@ async (test, mek, m, { reply, isOwner }) => {
         return reply("❌ දත්ත කියවීමේදී දෝෂයක් සිදුවිය.");
     }
 });
-
-
