@@ -27,10 +27,10 @@ cmd({
     category: "owner",
     filename: __filename
 },
-async (conn, mek, m, { from, args, q, reply, isOwner }) => { // මෙහි isOwner එකතු කර ඇත
+async (conn, mek, m, { from, args, q, reply, }) => { // මෙහි isOwner එකතු කර ඇත
     try {
         // අයිතිකරු දැයි පරීක්ෂා කිරීම
-        if (!isOwner) return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ බොට්ගේ අයිතිකරුට (Owner) පමණි.");
+        if return reply("❌ මෙම විධානය භාවිත කළ හැක්කේ බොට්ගේ අයිතිකරුට (Owner) පමණි.");
 
         if (!q) return reply(`*භාවිතය:* .config [setting_name] [true/false]\n\n*උදාහරණ:* .config auto_call_end true\n\n*ලැයිස්තුව:* \n- auto_call_end\n- auto_mg_react\n- auto_status_seen\n- auto_status_react`);
 
