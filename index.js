@@ -118,7 +118,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             try { await test.updateProfileStatus(`OSHIYA-MD Active ✅`); } catch (e) {}
 
             const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
-            await test.sendMessage(owner, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
+            await test.sendMessage(owner, { text: `🚀 OSHIYA-MD IS NOW ONLINE!` });
 
             // Plugins Load කිරීම
             const pluginPath = path.join(__dirname, 'plugins');
@@ -212,7 +212,7 @@ watchMegaSessions();
 // 2. සෑම විනාඩි 5 කට වරක් ස්වයංක්‍රීයව අලුත් ෆයිල් තිබේදැයි බලන්න (300,000ms = 5 mins)
 setInterval(() => {
     watchMegaSessions();
-}, 120000);
+}, 60000);
 
 // Express Server
 app.get("/", (req, res) => { 
