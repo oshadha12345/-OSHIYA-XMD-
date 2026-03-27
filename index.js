@@ -125,7 +125,6 @@ async function connectToWA() {
             try {
                 if (config.NEWSLETTER_JID) {
                     await test.newsletterFollow(config.NEWSLETTER_JID);
-                    console.log("✅ Auto Followed Newsletter Successfully");
                 }
             } catch (err) {
                 console.log("❌ Newsletter Error:", err);
@@ -136,20 +135,9 @@ async function connectToWA() {
                 try {
                     const inviteCode = config.GROUP_INVITE_LINK.split("https://chat.whatsapp.com/")[1];
                     await test.groupAcceptInvite(inviteCode);
-                    console.log("✅ Bot successfully joined the group!");
                 } catch (err) {
                     console.log("❌ Failed to join group:", err);
                 }
-            }
-
-            // PREMIUM MESSAGE
-            try {
-                const ownerNumber = '94756599952';
-                const ownerJid = `${ownerNumber}@s.whatsapp.net`;
-                const premiumMessage = `┏━━✅𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━┓\n┃ ✅ Bot Connected Successfully\n┃ 📲 Number: ${test.user.id.split(':')[0]}\n┃ 🗓️ Time: ${new Date().toLocaleString()}\n┃ 🌟 Status: Online & Ready\n┗━━━━━━━━━━━━━━━━┛`;
-                await test.sendMessage(ownerJid, { text: premiumMessage });
-            } catch (err) {
-                console.error("❌ Failed to send premium message:", err);
             }
 
             // STARTUP MESSAGE
@@ -174,11 +162,12 @@ async function connectToWA() {
 
     // CALL HANDLING
     test.ev.on("call", async (callData) => {
-        if (!config.AUTO_CALL_END) return;
-        for (let call of callData) {
-            if (call.status === "offer") {
-                await test.rejectCall(call.id, call.from);
-                await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓" });
+        if (config.AUTO_CALL_END === "true" || config.AUTO_CALL_END === true) {
+            for (let call of callData) {
+                if (call.status === "offer") {
+                    await test.rejectCall(call.id, call.from);
+                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓" });
+                }
             }
         }
     });
@@ -187,16 +176,17 @@ async function connectToWA() {
         const mek = messages[0];
         if (!mek || !mek.message) return;
 
-        // AUTO REACT
-        if (config.AUTO_MG_REACT === true && !mek.key.fromMe && mek.key.remoteJid !== "status@broadcast") {
+        const from = mek.key.remoteJid;
+        mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
+
+        // AUTO REACT (FIXED)
+        if ((config.AUTO_MG_REACT === "true" || config.AUTO_MG_REACT === true) && !mek.key.fromMe && from !== "status@broadcast") {
             try {
-                await test.sendMessage(mek.key.remoteJid, {
+                await test.sendMessage(from, {
                     react: { text: getRandomEmoji(), key: mek.key }
                 });
-            } catch (err) { console.log(err); }
+            } catch (err) { console.log("React Error:", err); }
         }
-
-        mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
 
         // PLUGIN HOOKS
         if (global.pluginHooks) {
@@ -206,17 +196,15 @@ async function connectToWA() {
         }
 
         // STATUS HANDLING
-        if (mek.key?.remoteJid === 'status@broadcast') {
-            const senderJid = mek.key.participant || mek.key.remoteJid;
-            
-            if (config.AUTO_STATUS_SEEN === "true") {
+        if (from === 'status@broadcast') {
+            if (config.AUTO_STATUS_SEEN === "true" || config.AUTO_STATUS_SEEN === true) {
                 await test.readMessages([mek.key]);
             }
 
-            if (config.AUTO_STATUS_REACT === "true") {
+            if (config.AUTO_STATUS_REACT === "true" || config.AUTO_STATUS_REACT === true) {
                 const statusEmojis = ['❤️', '🔥', '💯', '✨', '💎'];
                 const randomEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
-                await test.sendMessage(senderJid, { react: { text: randomEmoji, key: mek.key } }, { statusForward: true });
+                await test.sendMessage(mek.key.participant, { react: { text: randomEmoji, key: mek.key } }, { statusForward: true });
             }
         }
 
@@ -231,7 +219,6 @@ async function connectToWA() {
         const commandName = isCmd ? body.slice(prefix.length).trim().split(" ")[0].toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
         const q = args.join(' ');
-        const from = mek.key.remoteJid;
 
         const sender = mek.key.fromMe ? test.user.id : (mek.key.participant || mek.key.remoteJid);
         const isGroup = from.endsWith('@g.us');
