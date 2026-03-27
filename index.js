@@ -239,10 +239,6 @@ await test.sendMessage(botJid, {
 
     const mek = messages[0];
     if (!mek || !mek.message) return;
-
-    const mek = messages[0];
-if (!mek || !mek.message) return;
-
 // 👉 මෙතනට ADD කරන්න
 // ================= AUTO REACT =================
 if (config.AUTO_MG_REACT === true) {
