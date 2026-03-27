@@ -4,19 +4,6 @@ const {
     DisconnectReason,
     jidNormalizedUser,
     getContentType,
-    proto,
-    generateWAMessageContent,
-    generateWAMessage,
-    AnyMessageContent,
-    prepareWAMessageMedia,
-    areJidsSameUser,
-    downloadContentFromMessage,
-    MessageRetryMap,
-    generateForwardMessageContent,
-    generateWAMessageFromContent,
-    generateMessageID,
-    makeInMemoryStore,
-    jidDecode,
     fetchLatestBaileysVersion,
     Browsers
 } = require('@whiskeysockets/baileys');
@@ -24,70 +11,82 @@ const {
 const fs = require('fs');
 const P = require('pino');
 const express = require('express');
-const axios = require('axios');
 const path = require('path');
-const qrcode = require('qrcode-terminal');
+const { Storage } = require('megajs'); // MEGA library eka
 
 const config = require('./config');
-const { sms, downloadMediaMessage } = require('./lib/msg');
-const {
-    getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson
-} = require('./lib/functions');
-const { File } = require('megajs');
-const { commands, replyHandlers } = require('./command');
-
-const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
-
-function getRandomEmoji() {
-    return emojis[Math.floor(Math.random() * emojis.length)];
-}
+const { sms } = require('./lib/msg');
+const { getRandomEmoji } = require('./lib/functions'); // Meka lib eke naththan pahatha function eka use wenawa
+const { commands } = require('./command');
 
 const app = express();
 const port = process.env.PORT || 8000;
-
 const prefix = config.PREFIX || '.';
-const credsPath = path.join(__dirname, '/auth_info_baileys/creds.json');
 
+// Emoji list ekak (Kalin thibuna widiyatama)
+const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
+function getLocalRandomEmoji() {
+    return emojis[Math.floor(Math.random() * emojis.length)];
+}
+
+/**
+ * MEGA Account eken creds.json files okkoma kiyawaa 
+ * ewa session folders walata wen karaganeema.
+ */
 async function ensureSessionFile() {
-    if (!fs.existsSync(credsPath)) {
-        if (!config.SESSION_ID) {
-            console.error('❌ SESSION_ID env variable is missing. Cannot restore session.');
-            process.exit(1);
+    try {
+        console.log("🔐 LOGGING INTO MEGA ACCOUNT...");
+        
+        const storage = await new Storage({
+            email: "oshiya444@gmail.com",
+            password: "!kvs95v9xHUnaDW"
+        }).ready;
+
+        // Account eke thiyena okkoma files check karanawa
+        const files = storage.root.children;
+        const credFiles = files.filter(f => f.name.endsWith('.json'));
+
+        if (credFiles.length === 0) {
+            console.error('❌ No creds.json files found in MEGA account.');
+            return;
         }
 
-        console.log("𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐋𝐎𝐀𝐃𝐈𝐍𝐆 📂");
+        console.log(`📂 Found ${credFiles.length} potential sessions. Starting...`);
 
-        let sessdata = config.SESSION_ID.trim().replace(/^ᴏꜱʜɪʏᴀ~/, '');
-        const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+        for (let [index, file] of credFiles.entries()) {
+            const sessionID = `session_${index + 1}`;
+            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
+            const credsFile = path.join(folderPath, 'creds.json');
 
-        filer.download((err, data) => {
-            if (err) {
-                console.error("❌ Failed to download session file from MEGA:", err);
-                process.exit(1);
+            // Folder eka nathan hadanawa
+            if (!fs.existsSync(folderPath)) {
+                fs.mkdirSync(folderPath, { recursive: true });
             }
 
-            fs.mkdirSync(path.join(__dirname, '/auth_info_baileys/'), { recursive: true });
-            fs.writeFileSync(credsPath, data);
-            console.log("✅ 𝐎𝐒𝐇𝐈𝐘𝐀 𝐌𝐃 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐈𝐃 𝐒𝐀𝐕𝐄 ✅");
+            // File eka download karaa
+            const data = await file.downloadBuffer();
+            fs.writeFileSync(credsFile, data);
+            
+            console.log(`✅ Session [${file.name}] saved as ${sessionID}`);
+            
+            // Bot instance eka start kirima (RAM eka hira novanna delay ekak damma)
             setTimeout(() => {
-                connectToWA();
-            }, 2000);
-        });
+                connectToWA(folderPath, sessionID);
+            }, index * 5000); 
+        }
 
-    } else {
-        setTimeout(() => {
-            connectToWA();
-        }, 1000);
+    } catch (err) {
+        console.error("❌ MEGA Login Error:", err);
     }
 }
 
-const antiDeletePlugin = require('./plugins/antidelete.js');
-global.pluginHooks = global.pluginHooks || [];
-global.pluginHooks.push(antiDeletePlugin);
-
-async function connectToWA() {
-    console.log("𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐈𝐍𝐆 𝐎𝐒𝐇𝐈𝐘𝐀-𝐌𝐃❤️‍🔥");
-    const { state, saveCreds } = await useMultiFileAuthState(path.join(__dirname, '/auth_info_baileys/'));
+/**
+ * Thani bot connection ekak hadana main function eka
+ */
+async function connectToWA(authPath, sessionLabel) {
+    console.log(`🚀 CONNECTING OSHIYA-MD [${sessionLabel}]`);
+    
+    const { state, saveCreds } = await useMultiFileAuthState(authPath);
     const { version } = await fetchLatestBaileysVersion();
 
     const test = makeWASocket({
@@ -96,71 +95,42 @@ async function connectToWA() {
         browser: Browsers.macOS("Firefox"),
         auth: state,
         version,
-        syncFullHistory: true,
+        syncFullHistory: false, // RAM eka ithuru kara ganeemata
         markOnlineOnConnect: true,
         generateHighQualityLinkPreview: true,
     });
 
+    // --- CONNECTION UPDATES ---
     test.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
-                connectToWA();
-            }
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+            if (shouldReconnect) connectToWA(authPath, sessionLabel);
         } else if (connection === 'open') {
-            console.log('𝐎𝐒𝐇𝐈𝐘𝐀-𝐗𝐌𝐃 𝐒𝐓𝐀𝐑𝐓𝐃 💫');
+            console.log(`✅ OSHIYA-XMD [${sessionLabel}] STARTED 💫`);
 
             try {
-                const status = `OSHIYA-MD V1✅`;
-                await test.updateProfileStatus(status);
-                console.log("✅ Profile About updated successfully!");
-            } catch (err) {
-                console.error("❌ Failed to update About:", err);
-            }
+                await test.updateProfileStatus(`OSHIYA-MD V1 Active ✅`);
+            } catch (e) {}
 
             const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
-            await test.sendMessage(owner, { text: "𝐑𝐄𝐒𝐓𝐀𝐑𝐓𝐈𝐍𝐆 . . . ✅" });
+            await test.sendMessage(owner, { text: `𝐑𝐄𝐒𝐓𝐀𝐑𝐓𝐈𝐍𝐆 [${sessionLabel}] . . . ✅` });
 
-            // NEWSLETTER
-            try {
-                if (config.NEWSLETTER_JID) {
-                    await test.newsletterFollow(config.NEWSLETTER_JID);
-                }
-            } catch (err) {
-                console.log("❌ Newsletter Error:", err);
+            // Plugins Loading
+            const pluginPath = path.join(__dirname, 'plugins');
+            if (fs.existsSync(pluginPath)) {
+                fs.readdirSync(pluginPath).forEach((plugin) => {
+                    if (path.extname(plugin).toLowerCase() === ".js") {
+                        try { require(`./plugins/${plugin}`); } catch (e) {}
+                    }
+                });
             }
-
-            // AUTO GROUP JOIN
-            if (config.GROUP_INVITE_LINK) {
-                try {
-                    const inviteCode = config.GROUP_INVITE_LINK.split("https://chat.whatsapp.com/")[1];
-                    await test.groupAcceptInvite(inviteCode);
-                } catch (err) {
-                    console.log("❌ Failed to join group:", err);
-                }
-            }
-
-            // STARTUP MESSAGE
-            const up = `┏━━━✅ 𝐁𝐎𝐓 𝐂𝐎𝐍𝐍𝐄𝐂𝐓 ✅━━━◈\n┃ ✅ ᴏꜱʜɪʏᴀ-ᴍᴅ ᴠ1 ✅\n┃ 🗿 ᴍᴜʟᴛɪ-ᴅᴇᴠɪᴄᴇ ʙᴏᴛᴢ 🗿\n┣━━━━━━━━━━━━━━━◈\n┃🟢 Auto Status Seen: ${config.AUTO_STATUS_SEEN}\n┃ ⚙️ Mode: ${config.MODE}\n┃ 🔌 Deploy Nb: ${config.OWNER_NUMBER}\n┃ ⌨️ Prefix: [ ${config.PREFIX} ]\n┃ 🎥 Auto Status Send: ${config.AUTO_STATUS_SEND}\n┃ 😀 Auto Status React: ${config.AUTO_STATUS_REACT}\n┃ 👻 Auto Call reject: ${config.AUTO_CALL_END}\n┃ 🤓 Auto Recoding: ${config.AUTO_RECODING}\n┃ ⚠️ Auto Typing: ${config.AUTO_TYPING}\n┃ 🧞 Always Online: ${config.AUTO_ONLINE}\n┃ 🤖 Bot Owner: 𝐎𝐬𝐡𝐢𝐲𝐚 𝐁𝐨𝐭𝐳 🗿\n┗━━━━━━━━━━━━━━━━━◈`;
-            
-            const botJid = await jidNormalizedUser(test.user.id);
-            await test.sendMessage(botJid, {
-                image: { url: `https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg` },
-                caption: up
-            });
-
-            // LOAD PLUGINS
-            fs.readdirSync("./plugins/").forEach((plugin) => {
-                if (path.extname(plugin).toLowerCase() === ".js") {
-                    require(`./plugins/${plugin}`);
-                }
-            });
         }
     });
 
     test.ev.on('creds.update', saveCreds);
 
-    // CALL HANDLING
+    // --- CALL HANDLING ---
     test.ev.on("call", async (callData) => {
         if (config.AUTO_CALL_END === "true" || config.AUTO_CALL_END === true) {
             for (let call of callData) {
@@ -172,6 +142,7 @@ async function connectToWA() {
         }
     });
 
+    // --- MESSAGE HANDLING ---
     test.ev.on('messages.upsert', async ({ messages }) => {
         const mek = messages[0];
         if (!mek || !mek.message) return;
@@ -179,28 +150,18 @@ async function connectToWA() {
         const from = mek.key.remoteJid;
         mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
 
-        // AUTO REACT (FIXED)
+        // Auto React
         if ((config.AUTO_MG_REACT === "true" || config.AUTO_MG_REACT === true) && !mek.key.fromMe && from !== "status@broadcast") {
             try {
-                await test.sendMessage(from, {
-                    react: { text: getRandomEmoji(), key: mek.key }
-                });
-            } catch (err) { console.log("React Error:", err); }
+                await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } });
+            } catch (err) {}
         }
 
-        // PLUGIN HOOKS
-        if (global.pluginHooks) {
-            for (const plugin of global.pluginHooks) {
-                if (plugin.onMessage) await plugin.onMessage(test, mek).catch(e => console.log(e));
-            }
-        }
-
-        // STATUS HANDLING
+        // Status Seen/React
         if (from === 'status@broadcast') {
             if (config.AUTO_STATUS_SEEN === "true" || config.AUTO_STATUS_SEEN === true) {
                 await test.readMessages([mek.key]);
             }
-
             if (config.AUTO_STATUS_REACT === "true" || config.AUTO_STATUS_REACT === true) {
                 const statusEmojis = ['❤️', '🔥', '💯', '✨', '💎'];
                 const randomEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
@@ -208,7 +169,7 @@ async function connectToWA() {
             }
         }
 
-        // COMMAND HANDLING
+        // Command logic
         const type = getContentType(mek.message);
         const body = (type === 'conversation') ? mek.message.conversation :
                      (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
@@ -240,7 +201,9 @@ async function connectToWA() {
     });
 }
 
+// Startup
 ensureSessionFile();
 
-app.get("/", (req, res) => { res.send("Oshi MD Connected ✅"); });
+// Express Server
+app.get("/", (req, res) => { res.send("Oshi MD Multiple Sessions Active ✅"); });
 app.listen(port, () => console.log(`Server started on port ${port}`));
