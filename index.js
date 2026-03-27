@@ -114,7 +114,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
 
     // Call Handling (Settings වලින් බලයි)
     test.ev.on("call", async (callData) => {
-        const currentSett = getCurrentSettings();
+        const currentSett = getDBSettings();
         if (currentSett.AUTO_CALL_END) {
             for (let call of callData) {
                 if (call.status === "offer") {
@@ -132,7 +132,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
 
         // සෑම පණිවිඩයකදීම නැවුම් settings කියවන්න
-        const currentSett = getCurrentSettings();
+        const currentSett = getDBSettings();
 
         // Auto React
         if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
