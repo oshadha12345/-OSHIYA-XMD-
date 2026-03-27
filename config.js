@@ -14,6 +14,7 @@ PREFIX: ".",
 AUTO_STATUS_SEEN: 'false',
 AUTO_STATUS_REACT: 'false',
 AUTO_CALL_END: 'true',
+AUTO_MG_REACT: 'true',
 NEWSLETTER_JID: "120363424190990486@newsletter",
 GROUP_INVITE_LINK: "https://chat.whatsapp.com/FGZiHK4LtN9IQSIWHfOSib",
 
