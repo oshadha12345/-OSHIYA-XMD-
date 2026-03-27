@@ -1,61 +1,77 @@
 const { cmd } = require('../command');
 const { Settings } = require('../lib/mongodb'); 
 
+// --- CONFIG COMMAND ---
 cmd({
     pattern: "config",
-    alias: ["settings", "set"],
-    desc: "Update bot configurations",
-    category: "owner", // ඔබට අවශ්‍ය නම් මෙය "main" ලෙස වෙනස් කළ හැක
+    alias: ["settings", "set", "apply"],
+    react: "🔌",
+    desc: "Update bot configurations (Owner only)",
+    category: "owner",
     use: ".config AUTO_STATUS_SEEN true",
     filename: __filename
 },
-async (test, mek, m, { args, reply, prefix }) => { // isOwner ඉවත් කරන ලදී
+async (test, mek, m, { args, reply, prefix, isOwner }) => {
     try {
-        // Args පරීක්ෂාව
+        // අයිතිකරු පමණක් දැයි පරීක්ෂාව
+        if (!isOwner) return reply("⚠️ *ACCESS DENIED* ⚠️\n\nමෙම විධානය භාවිතා කළ හැක්කේ Bot හිමිකරුට (Premium) පමණි.");
+
         if (args.length < 2) {
-            return reply(`*OSHIYA-MD CONFIGURATION*\n\n*Usage:* ${prefix}config [Setting_Name] [true/false]\n\n*Available Settings:* \n- AUTO_CALL_END\n- AUTO_MG_REACT\n- AUTO_STATUS_SEEN\n- AUTO_STATUS_REACT`);
+            let list = "┌──『 *OSHIYA-MD SETTINGS* 』──◆\n";
+            list += "┃\n";
+            list += `┃ *Usage:* ${prefix}config [Name] [true/false]\n`;
+            list += "┃\n";
+            list += "┠─『 *AVAILABLE* 』\n";
+            list += "┃ ➥ AUTO_CALL_END\n";
+            list += "┃ ➥ AUTO_MG_REACT\n";
+            list += "┃ ➥ AUTO_STATUS_SEEN\n";
+            list += "┃ ➥ AUTO_STATUS_REACT\n";
+            list += "┃\n";
+            list += "└───────────────┈⊷";
+            return reply(list);
         }
 
         const settingName = args[0].toUpperCase();
         const inputVal = args[1].toLowerCase();
-        
         const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
         
         if (!validSettings.includes(settingName)) {
-            return reply(`❌ වලංගු නොවන setting එකක්: ${settingName}\n\nභාවිතා කළ හැකි ඒවා: ${validSettings.join(', ')}`);
+            return reply(`❌ *No Settings*`);
         }
 
         if (inputVal !== 'true' && inputVal !== 'false') {
-            return reply("❌ අගය 'true' හෝ 'false' විය යුතුය.");
+            return reply("❌ *true / false*");
         }
 
         const value = inputVal === 'true';
 
-        // Database එක update කිරීම
         await Settings.findOneAndUpdate(
             { id: 'main_settings' }, 
             { [settingName]: value }, 
             { upsert: true, new: true }
         );
 
-        return reply(`✅ *${settingName}* සාර්ථකව *${value ? 'ON (true)' : 'OFF (false)'}* කරන ලදී.`);
+        return reply(`✅ *CONFIG UPDATED*\n\n⚙️ *Setting:* ${settingName}\n✅ *Status:* ${value ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}`);
 
     } catch (e) {
         console.error(e);
-        return reply("❌ Database එක update කිරීමේදී දෝෂයක් සිදුවිය.");
+        return reply("❌ Database update error.");
     }
 });
 
-// වත්මන් settings පෙන්වීමට command එකක්
+// --- GET CONFIG COMMAND ---
 cmd({
     pattern: "getconfig",
-    alias: ["status", "allconfig"],
-    desc: "Show current bot configurations",
+    alias: ["settings", "allconfig"],
+    react: "🧑‍💻",
+    desc: "Show current premium configurations",
     category: "owner",
     filename: __filename
 },
-async (test, mek, m, { reply, prefix }) => { // isOwner සහ අනවශ්‍ය variables ඉවත් කරන ලදී
+async (test, mek, m, { reply, prefix, isOwner }) => {
     try {
+        if (!isOwner) return reply("⚠️ *PREMIUM FEATURE* ⚠️\n\nමෙය බැලීමට ඔබට අවසර නැත.");
+
         let data = await Settings.findOne({ id: 'main_settings' });
         
         if (!data) {
@@ -68,17 +84,17 @@ async (test, mek, m, { reply, prefix }) => { // isOwner සහ අනවශ්�
             });
         }
         
-        let msg = "⚙️ *OSHIYA-MD CURRENT CONFIG*\n\n";
-        msg += `📞 *Auto Call End:* ${data.AUTO_CALL_END ? '✅ (ON)' : '❌ (OFF)'}\n`;
-        msg += `💬 *Auto Msg React:* ${data.AUTO_MG_REACT ? '✅ (ON)' : '❌ (OFF)'}\n`;
-        msg += `👁️ *Auto Status Seen:* ${data.AUTO_STATUS_SEEN ? '✅ (ON)' : '❌ (OFF)'}\n`;
-        msg += `✨ *Auto Status React:* ${data.AUTO_STATUS_REACT ? '✅ (ON)' : '❌ (OFF)'}\n\n`;
-        msg += `*Tip:* පාලනය කිරීමට ${prefix}config [Name] true/false භාවිතා කරන්න.`;
+        let msg = "✨ 『 *OSHIYA-MD PREMIUM STATUS* 』 ✨\n\n";
+        msg += `🛡️ *Auto Call End:* ${data.AUTO_CALL_END ? '🟢 ON' : '🔴 OFF'}\n`;
+        msg += `⚡ *Auto Msg React:* ${data.AUTO_MG_REACT ? '🟢 ON' : '🔴 OFF'}\n`;
+        msg += `👁️ *Auto Status Seen:* ${data.AUTO_STATUS_SEEN ? '🟢 ON' : '🔴 OFF'}\n`;
+        msg += `💖 *Auto Status React:* ${data.AUTO_STATUS_REACT ? '🟢 ON' : '🔴 OFF'}\n\n`;
+        msg += ".apply Command Change Settings 🖤";
         
         return reply(msg);
 
     } catch (e) {
         console.error(e);
-        return reply("❌ දත්ත කියවීමේදී දෝෂයක් සිදුවිය.");
+        return reply("❌ Data retrieval error.");
     }
 });
