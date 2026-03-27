@@ -11,15 +11,20 @@ cmd({
     use: ".config AUTO_STATUS_SEEN true",
     filename: __filename
 },
-async (test, mek, m, { args, reply, prefix, isOwner }) => {
+async (test, mek, m, { args, reply, prefix }) => {
     try {
-        // අයිතිකරු පමණක් දැයි පරීක්ෂාව
-        if (!isOwner) return reply("⚠️ *ACCESS DENIED* ⚠️\n\nමෙම විධානය භාවිතා කළ හැක්කේ Bot හිමිකරුට (Premium) පමණි.");
+        // ලොග් වී සිටින අංකය සහ පණිවිඩය එවූ අංකය පරීක්ෂා කිරීම
+        const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
+        const isBotOwner = m.sender === botNumber;
+
+        if (!isBotOwner) {
+            return reply("⚠️ *ACCESS DENIED* ⚠️\n\nමෙම විධානය භාවිතා කළ හැක්කේ Bot ලොග් කර ඇති අංකයට පමණි.");
+        }
 
         if (args.length < 2) {
             let list = "┌──『 *OSHIYA-MD SETTINGS* 』──◆\n";
             list += "┃\n";
-            list += `┃ *Usage:* ${prefix}config [Name] [true/false]\n`;
+            list += `┃ *Usage:* setting name [true/false]\n`;
             list += "┃\n";
             list += "┠─『 *AVAILABLE* 』\n";
             list += "┃ ➥ AUTO_CALL_END\n";
@@ -36,11 +41,11 @@ async (test, mek, m, { args, reply, prefix, isOwner }) => {
         const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
         
         if (!validSettings.includes(settingName)) {
-            return reply(`❌ *No Settings*`);
+            return reply(`❌ *No Settings found with name: ${settingName}*`);
         }
 
         if (inputVal !== 'true' && inputVal !== 'false') {
-            return reply("❌ *true / false*");
+            return reply("❌ කරුණාකර අගය *true* හෝ *false* ලෙස ඇතුළත් කරන්න.");
         }
 
         const value = inputVal === 'true';
@@ -68,9 +73,14 @@ cmd({
     category: "owner",
     filename: __filename
 },
-async (test, mek, m, { reply, prefix, isOwner }) => {
+async (test, mek, m, { reply, prefix }) => {
     try {
-        if (!isOwner) return reply("⚠️ *PREMIUM FEATURE* ⚠️\n\nමෙය බැලීමට ඔබට අවසර නැත.");
+        const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
+        const isBotOwner = m.sender === botNumber;
+
+        if (!isBotOwner) {
+            return reply("⚠️ *PREMIUM FEATURE* ⚠️\n\nමෙය බැලීමට ඔබට අවසර නැත.");
+        }
 
         let data = await Settings.findOne({ id: 'main_settings' });
         
@@ -89,7 +99,7 @@ async (test, mek, m, { reply, prefix, isOwner }) => {
         msg += `⚡ *Auto Msg React:* ${data.AUTO_MG_REACT ? '🟢 ON' : '🔴 OFF'}\n`;
         msg += `👁️ *Auto Status Seen:* ${data.AUTO_STATUS_SEEN ? '🟢 ON' : '🔴 OFF'}\n`;
         msg += `💖 *Auto Status React:* ${data.AUTO_STATUS_REACT ? '🟢 ON' : '🔴 OFF'}\n\n`;
-        msg += ".apply Command Change Settings 🖤";
+        msg += `.apply Command Change Settings 🖤`;
         
         return reply(msg);
 
