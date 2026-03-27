@@ -34,11 +34,11 @@ cmd(
         text: aliveBody,
         footer: '© 2026 OSHIYA-MD V1',
         image: { url: "https://raw.githubusercontent.com/oshadha12345/images/refs/heads/main/20251222_040815.jpg" },
-        aimode: true,
+        aimode: false,
         buttons: [
           {
             id: `${prefix}menu`, 
-            text: '📜 MAIN MENU' 
+            text: '📜  MENU' 
           },
           {
             id: `${prefix}ping`, 
