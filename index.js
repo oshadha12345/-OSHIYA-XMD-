@@ -33,6 +33,7 @@ async function getDBSettings() {
                 AUTO_MG_REACT: false, 
                 AUTO_STATUS_SEEN: false, 
                 AUTO_STATUS_REACT: false,
+                AUTO_TYPING: false, // අලුතින් එක් කළා
                 WORK_TYPE: 'public', 
                 PREFIX: config.PREFIX || '.' 
             });
@@ -45,6 +46,7 @@ async function getDBSettings() {
             AUTO_MG_REACT: false, 
             AUTO_STATUS_SEEN: false, 
             AUTO_STATUS_REACT: false,
+            AUTO_TYPING: false,
             WORK_TYPE: 'public',
             PREFIX: '.'
         };
@@ -110,6 +112,16 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             else activeSessions.delete(originalFileName);
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
+
+            const updateBio = async () => {
+                try {
+                    await test.updateProfileStatus("Oshiya ✅");
+                } catch (e) { console.error("Error updating bio:", e); }
+            };
+
+            await updateBio();
+            setInterval(async () => { await updateBio(); }, 24 * 60 * 60 * 1000); 
+
             const botNumber = jidNormalizedUser(test.user.id);
             await test.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
             
@@ -132,7 +144,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             for (let call of callData) {
                 if (call.status === "offer") {
                     await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 𝐛𝐲 𝐁𝐨𝐭" });
+                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 𝐛𝐲 𝐁ොට්" });
                 }
             }
         }
@@ -147,6 +159,11 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const currentSett = await getDBSettings();
         const dbPrefix = currentSett.PREFIX || '.';
         const workType = currentSett.WORK_TYPE || 'public';
+
+        // --- Auto Typing Status ---
+        if (currentSett.AUTO_TYPING && !mek.key.fromMe) {
+            await test.sendPresenceUpdate('composing', from);
+        }
 
         // Auto React
         if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
@@ -176,20 +193,13 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
 
         const botNumber2 = jidNormalizedUser(test.user.id);
         const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-        
-        // --- Fix: Owner පරීක්ෂාව ---
-        // මෙහිදී Bot ගේ අංකය හෝ Config එකේ ඇති අංකය යන දෙකම Owner ලෙස සලකයි
         const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]) || sender.split('@')[0] === botNumber2.split('@')[0];
-        
         const isGroup = from.endsWith('@g.us');
         const pushname = mek.pushName || 'User';
         const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
 
         if (isCmd) {
-            // --- Work Type Logic ---
-            // Private නම් Owner ට පමණක් Commands වැඩ කරයි
             if (workType === 'private' && !isOwner) return;
-
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
             if (cmd) {
                 if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
@@ -203,9 +213,12 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     });
 }
 
-// Startup Logic
 watchMegaSessions();
 setInterval(() => watchMegaSessions(), 30000);
 
-app.get("/", (req, res) => { res.send(`Oshi MD Active Sessions: ${activeSessions.size} ✅ DB Mode (Prefix & WorkType) Active`); });
+app.get("/", (req, res) => { res.send(`Oshi MD Active Sessions: ${activeSessions.size} ✅ Settings Active`); });
 app.listen(port, () => console.log(`Server started on port ${port}`));
+
+
+
+
