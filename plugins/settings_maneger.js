@@ -3,34 +3,34 @@ const { Settings } = require('../lib/mongodb');
 
 // --- CONFIG COMMAND ---
 cmd({
-    pattern: "config",
-    alias: ["settings", "set", "apply"],
+    pattern: "use",
+    alias: ["set", "apply", "updateconfig"], // 'settings' ඉවත් කරන ලදී
     react: "🔌",
     desc: "Update bot configurations (Owner only)",
     category: "owner",
     use: ".config AUTO_STATUS_SEEN true",
     filename: __filename
 },
-async (test, mek, m, { args, reply, prefix }) => {
+async (test, mek, m, { args, reply }) => {
     try {
-        // ලොග් වී සිටින අංකය සහ පණිවිඩය එවූ අංකය පරීක්ෂා කිරීම
         const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
         const isBotOwner = m.sender === botNumber;
 
         if (!isBotOwner) {
-            return reply("⚠️ *ACCESS DENIED* ⚠️\n\nමෙම විධානය භාවිතා කළ හැක්කේ Bot ලොග් කර ඇති අංකයට පමණි.");
+            return reply("⚠️ *ACCESS DENIED* ⚠️");
         }
+
+        const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
 
         if (args.length < 2) {
             let list = "┌──『 *OSHIYA-MD SETTINGS* 』──◆\n";
             list += "┃\n";
-            list += `┃ *Usage:* setting name [true/false]\n`;
+            list += `┃ *Usage:* .config [setting_name] [true/false]\n`;
             list += "┃\n";
-            list += "┠─『 *AVAILABLE* 』\n";
-            list += "┃ ➥ AUTO_CALL_END\n";
-            list += "┃ ➥ AUTO_MG_REACT\n";
-            list += "┃ ➥ AUTO_STATUS_SEEN\n";
-            list += "┃ ➥ AUTO_STATUS_REACT\n";
+            list += "┠─『 *AVAILABLE OPTIONS* 』\n";
+            validSettings.forEach(s => {
+                list += `┃ ➥ ${s}\n`;
+            });
             list += "┃\n";
             list += "└───────────────┈⊷";
             return reply(list);
@@ -38,42 +38,42 @@ async (test, mek, m, { args, reply, prefix }) => {
 
         const settingName = args[0].toUpperCase();
         const inputVal = args[1].toLowerCase();
-        const validSettings = ['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'];
         
         if (!validSettings.includes(settingName)) {
-            return reply(`❌ *No Settings found with name: ${settingName}*`);
+            return reply(`❌ *Invalid Setting:* ${settingName}\n\nකරුණාකර නිවැරදි නමක් ඇතුළත් කරන්න.`);
         }
 
         if (inputVal !== 'true' && inputVal !== 'false') {
             return reply("❌ කරුණාකර අගය *true* හෝ *false* ලෙස ඇතුළත් කරන්න.");
         }
 
-        const value = inputVal === 'true';
+        const value = (inputVal === 'true');
 
+        // Database Update
         await Settings.findOneAndUpdate(
             { id: 'main_settings' }, 
             { [settingName]: value }, 
             { upsert: true, new: true }
         );
 
-        return reply(`✅ *CONFIG UPDATED*\n\n⚙️ *Setting:* ${settingName}\n✅ *Status:* ${value ? 'ACTIVE (ON)' : 'DISABLED (OFF)'}`);
+        return reply(`✅ *CONFIG UPDATED*\n\n⚙️ *Setting:* ${settingName}\n✨ *New Status:* ${value ? '🟢 ON' : '🔴 OFF'}`);
 
     } catch (e) {
-        console.error(e);
-        return reply("❌ Database update error.");
+        console.error("Config Error:", e);
+        return reply("❌ Database update error. Please check logs.");
     }
 });
 
 // --- GET CONFIG COMMAND ---
 cmd({
     pattern: "getconfig",
-    alias: ["settings", "allconfig"],
+    alias: ["settings", "allconfig", "status"], // 'settings' මෙහි පමණක් තබා ඇත
     react: "🧑‍💻",
     desc: "Show current premium configurations",
     category: "owner",
     filename: __filename
 },
-async (test, mek, m, { reply, prefix }) => {
+async (test, mek, m, { reply }) => {
     try {
         const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
         const isBotOwner = m.sender === botNumber;
@@ -84,6 +84,7 @@ async (test, mek, m, { reply, prefix }) => {
 
         let data = await Settings.findOne({ id: 'main_settings' });
         
+        // දත්ත නොමැති නම් default අගයන් ඇතුළත් කිරීම
         if (!data) {
             data = await Settings.create({ 
                 id: 'main_settings',
@@ -99,12 +100,12 @@ async (test, mek, m, { reply, prefix }) => {
         msg += `⚡ *Auto Msg React:* ${data.AUTO_MG_REACT ? '🟢 ON' : '🔴 OFF'}\n`;
         msg += `👁️ *Auto Status Seen:* ${data.AUTO_STATUS_SEEN ? '🟢 ON' : '🔴 OFF'}\n`;
         msg += `💖 *Auto Status React:* ${data.AUTO_STATUS_REACT ? '🟢 ON' : '🔴 OFF'}\n\n`;
-        msg += `.apply Command Change Settings 🖤`;
+        msg += `💡 *Tip:* Use \`.apply [name] [true/false]\` to change settings.`;
         
         return reply(msg);
 
     } catch (e) {
-        console.error(e);
+        console.error("GetConfig Error:", e);
         return reply("❌ Data retrieval error.");
     }
 });
