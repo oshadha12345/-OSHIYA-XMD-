@@ -14,13 +14,16 @@ const express = require('express');
 const path = require('path');
 const { Storage } = require('megajs');
 
+// Config සහ Libs
 const config = require('./config');
 const { sms } = require('./lib/msg');
-const { commands } = require('./command');
+const { commands } = require('./command'); // Commands array එක මෙතනින් එනවා
 const { Settings } = require('./lib/mongodb'); 
 
 const app = express();
 const port = process.env.PORT || 8000;
+
+console.log("🛠️ OSHIYA-MD Loading...");
 
 // --- MongoDB Settings Fetcher ---
 async function getDBSettings() {
@@ -35,7 +38,7 @@ async function getDBSettings() {
                 AUTO_STATUS_REACT: false,
                 AUTO_TYPING: false,
                 WORK_TYPE: 'public', 
-                PREFIX: config.PREFIX || '.' 
+                PREFIX: '.' 
             });
         }
         return settings;
@@ -48,11 +51,6 @@ async function getDBSettings() {
 }
 
 const activeSessions = new Set();
-const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
-
-function getLocalRandomEmoji() {
-    return emojis[Math.floor(Math.random() * emojis.length)];
-}
 
 // --- MEGA Watcher Logic ---
 async function watchMegaSessions() {
@@ -87,10 +85,8 @@ async function watchMegaSessions() {
     }
 }
 
-// --- Infinite Loop for MEGA (Real-time tracking) ---
 async function continuousWatch() {
     await watchMegaSessions();
-    // තත්පර 5 කින් නැවත පරීක්ෂා කරයි (මෙය RAM එකට පහසුයි)
     setTimeout(continuousWatch, 30000); 
 }
 
@@ -99,7 +95,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
     const { version } = await fetchLatestBaileysVersion();
 
-    const test = makeWASocket({
+    const conn = makeWASocket({
         logger: P({ level: 'silent' }),
         printQRInTerminal: false,
         browser: Browsers.macOS("Firefox"),
@@ -109,7 +105,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         markOnlineOnConnect: true,
     });
 
-    test.ev.on('connection.update', async (update) => {
+    conn.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
@@ -120,90 +116,96 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             }
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
-            const botNumber = jidNormalizedUser(test.user.id);
-            await test.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
+            const botNumber = jidNormalizedUser(conn.user.id);
+            await conn.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
         }
     });
 
-    test.ev.on('creds.update', saveCreds);
+    conn.ev.on('creds.update', saveCreds);
 
-    test.ev.on("call", async (callData) => {
+    conn.ev.on('messages.upsert', async ({ messages }) => {
+        const mek = messages[0];
+        if (!mek || !mek.message) return;
+        
+        const from = mek.key.remoteJid;
+        const type = getContentType(mek.message);
+        
+        // --- Body Extraction (වැඩි දියුණු කළ කොටස) ---
+        let body = "";
+        if (type === 'conversation') body = mek.message.conversation;
+        else if (type === 'extendedTextMessage') body = mek.message.extendedTextMessage.text;
+        else if (type === 'imageMessage') body = mek.message.imageMessage.caption;
+        else if (type === 'videoMessage') body = mek.message.videoMessage.caption;
+        else if (type === 'templateButtonReplyMessage') body = mek.message.templateButtonReplyMessage.selectedId;
+        else if (type === 'buttonsResponseMessage') body = mek.message.buttonsResponseMessage.selectedButtonId;
+        else if (type === 'listResponseMessage') body = mek.message.listResponseMessage.singleSelectReply.selectedRowId;
+        else if (type === 'interactiveResponseMessage') body = JSON.parse(mek.message.interactiveResponseMessage.nativeFlowResponse.paramsJson).id;
+        
+        // Ephemeral support
+        if (type === 'ephemeralMessage') {
+            const subType = getContentType(mek.message.ephemeralMessage.message);
+            if (subType === 'extendedTextMessage') body = mek.message.ephemeralMessage.message.extendedTextMessage.text;
+            else if (subType === 'conversation') body = mek.message.ephemeralMessage.message.conversation;
+        }
+
         const currentSett = await getDBSettings();
-        if (currentSett.AUTO_CALL_END) {
-            for (let call of callData) {
-                if (call.status === "offer") {
-                    await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 𝐛𝐲 𝐁ොට්" });
+        const prefix = currentSett.PREFIX || config.PREFIX || '.';
+        const isCmd = body.startsWith(prefix);
+        const command = isCmd ? body.slice(prefix.length).trim().split(/ +/).shift().toLowerCase() : false;
+        const args = body.trim().split(/ +/).slice(1);
+        const q = args.join(" ");
+
+        const botNumber = jidNormalizedUser(conn.user.id);
+        const sender = mek.key.fromMe ? botNumber : (mek.key.participant || mek.key.remoteJid);
+        const isOwner = config.OWNER_NUMBER.includes(sender.split('@')[0]) || mek.key.fromMe;
+        const pushname = mek.pushName || 'User';
+        const isGroup = from.endsWith('@g.us');
+
+        const reply = (text) => conn.sendMessage(from, { text: text }, { quoted: mek });
+
+        // Settings Logic
+        if (currentSett.AUTO_TYPING && !mek.key.fromMe) conn.sendPresenceUpdate('composing', from);
+
+        // Command Execution Logic
+        if (isCmd) {
+            if (currentSett.WORK_TYPE === 'private' && !isOwner) return;
+
+            const cmd = commands.find((c) => c.pattern === command || (c.alias && c.alias.includes(command)));
+
+            if (cmd) {
+                if (cmd.react) conn.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
+                
+                try {
+                    const msg = sms(conn, mek);
+                    await cmd.function(conn, mek, msg, {
+                        from, prefix, body, isCmd, command, args, q, isGroup, sender, pushname, botNumber, isOwner, reply
+                    });
+                } catch (e) {
+                    console.error("Command Error:", e);
+                    // reply("Error: " + e.message); // අවශ්‍ය නම් පමණක් පාවිච්චි කරන්න
                 }
             }
         }
     });
 
-    test.ev.on('messages.upsert', async ({ messages }) => {
-        const mek = messages[0];
-        if (!mek || !mek.message) return;
-        const from = mek.key.remoteJid;
-        mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
-
-        const currentSett = await getDBSettings();
-        const dbPrefix = currentSett.PREFIX || '.';
-        const workType = currentSett.WORK_TYPE || 'public';
-
-        if (currentSett.AUTO_TYPING && !mek.key.fromMe) {
-            await test.sendPresenceUpdate('composing', from);
-        }
-
-        if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
-            try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
-        }
-
-        if (from === 'status@broadcast') {
-            if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
-            if (currentSett.AUTO_STATUS_REACT) {
-                const statusEmojis = ['❤️', '🔥', '💯', '✨', '💎'];
-                const randomEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
-                await test.sendMessage(mek.key.participant, { react: { text: randomEmoji, key: mek.key } }, { statusForward: true });
-            }
-        }
-
-        const type = getContentType(mek.message);
-        const body = (type === 'conversation') ? mek.message.conversation :
-                     (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
-                     (type == 'imageMessage') ? mek.message.imageMessage.caption :
-                     (type == 'videoMessage') ? mek.message.videoMessage.caption : '';
-
-        const isCmd = body.startsWith(dbPrefix);
-        const commandName = isCmd ? body.slice(dbPrefix.length).trim().split(" ")[0].toLowerCase() : '';
-        const args = body.trim().split(/ +/).slice(1);
-        const q = args.join(' ');
-
-        const botNumber2 = jidNormalizedUser(test.user.id);
-        const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-        const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]);
-        const isGroup = from.endsWith('@g.us');
-        const pushname = mek.pushName || 'User';
-        const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
-
-        if (isCmd) {
-            if (workType === 'private' && !isOwner) return;
-            const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
-            if (cmd) {
-                if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
-                try {
-                    cmd.function(test, mek, sms(test, mek), {
-                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, isOwner, reply
-                    });
-                } catch (e) { console.error(e); }
+    // Call End Logic
+    conn.ev.on("call", async (calls) => {
+        const settings = await getDBSettings();
+        if (settings.AUTO_CALL_END) {
+            for (let call of calls) {
+                if (call.status === "offer") {
+                    await conn.rejectCall(call.id, call.from);
+                }
             }
         }
     });
 }
 
-// --- Start the App ---
+// Start
 continuousWatch();
 
 app.get("/", (req, res) => { 
-    res.send(`OSHIYA-MD is running. Active Sessions: ${activeSessions.size}`); 
+    res.send(`OSHIYA-MD active sessions: ${activeSessions.size}`); 
 });
 
-app.listen(port, () => console.log(`🚀 Server started on port ${port}`));
+app.listen(port, () => console.log(`🚀 Port: ${port}`));
