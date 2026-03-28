@@ -27,15 +27,14 @@ async function getDBSettings() {
     try {
         let settings = await Settings.findOne({ id: 'main_settings' });
         if (!settings) {
-            // මුල්ම වතාවට run වන විට default settings සෑදීම
             settings = await Settings.create({ 
                 id: 'main_settings',
                 AUTO_CALL_END: false, 
                 AUTO_MG_REACT: false, 
                 AUTO_STATUS_SEEN: false, 
                 AUTO_STATUS_REACT: false,
-                WORK_TYPE: 'public', // Default Work Type
-                PREFIX: config.PREFIX || '.' // Default Prefix
+                WORK_TYPE: 'public', 
+                PREFIX: config.PREFIX || '.' 
             });
         }
         return settings;
@@ -111,8 +110,8 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             else activeSessions.delete(originalFileName);
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
-            const owner = config.OWNER_NUMBER + "@s.whatsapp.net";
-            await test.sendMessage(owner, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
+            const botNumber = jidNormalizedUser(test.user.id);
+            await test.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
             
             const pluginPath = path.join(__dirname, 'plugins');
             if (fs.existsSync(pluginPath)) {
@@ -133,7 +132,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             for (let call of callData) {
                 if (call.status === "offer") {
                     await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥𝐨𝐜𝐤 𝐛𝐲 𝐁𝐨𝐭" });
+                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 𝐛𝐲 𝐁𝐨𝐭" });
                 }
             }
         }
@@ -145,7 +144,6 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const from = mek.key.remoteJid;
         mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
 
-        // DB එකෙන් නවතම Settings ලබා ගැනීම
         const currentSett = await getDBSettings();
         const dbPrefix = currentSett.PREFIX || '.';
         const workType = currentSett.WORK_TYPE || 'public';
@@ -171,21 +169,25 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
                      (type == 'imageMessage') ? mek.message.imageMessage.caption :
                      (type == 'videoMessage') ? mek.message.videoMessage.caption : '';
 
-        // Dynamic Prefix පරීක්ෂාව
         const isCmd = body.startsWith(dbPrefix);
         const commandName = isCmd ? body.slice(dbPrefix.length).trim().split(" ")[0].toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
         const q = args.join(' ');
 
-        const sender = mek.key.fromMe ? test.user.id : (mek.key.participant || mek.key.remoteJid);
+        const botNumber2 = jidNormalizedUser(test.user.id);
+        const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
+        
+        // --- Fix: Owner පරීක්ෂාව ---
+        // මෙහිදී Bot ගේ අංකය හෝ Config එකේ ඇති අංකය යන දෙකම Owner ලෙස සලකයි
+        const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]) || sender.split('@')[0] === botNumber2.split('@')[0];
+        
         const isGroup = from.endsWith('@g.us');
         const pushname = mek.pushName || 'User';
-        const botNumber2 = await jidNormalizedUser(test.user.id);
-        const isOwner = config.OWNER_NUMBER.includes(sender.split('@')[0]);
         const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
 
         if (isCmd) {
-            // Work Type පරීක්ෂාව - Private නම් Owner ට පමණයි Commands වැඩ කරන්නේ
+            // --- Work Type Logic ---
+            // Private නම් Owner ට පමණක් Commands වැඩ කරයි
             if (workType === 'private' && !isOwner) return;
 
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
