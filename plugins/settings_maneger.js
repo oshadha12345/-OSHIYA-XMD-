@@ -19,7 +19,7 @@ cmd({
     react: "⚙️",
     desc: "Update bot configurations (Owner only)",
     category: "owner",
-    use: ".use WORK_TYPE private",
+    use: ".use 1",
     filename: __filename
 },
 async (test, mek, m, { args, reply, isOwner }) => {
@@ -29,52 +29,47 @@ async (test, mek, m, { args, reply, isOwner }) => {
 
         if (!isBotOwner) return reply(`${theme.warning} *ACCESS DENIED* ${theme.warning}\n\nමෙය හිමිකරුට පමණක් භාවිතා කළ හැක.`);
 
-        const validSettings = [
-            'AUTO_CALL_END', 
-            'AUTO_MG_REACT', 
-            'AUTO_STATUS_SEEN', 
-            'AUTO_STATUS_REACT',
-            'WORK_TYPE', 
-            'PREFIX'
-        ];
+        // Settings Mapping using numbers
+        const configMap = {
+            "1":   { name: "AUTO_CALL_END", value: true },
+            "1.1": { name: "AUTO_CALL_END", value: false },
+            "2":   { name: "AUTO_MG_REACT", value: true },
+            "2.1": { name: "AUTO_MG_REACT", value: false },
+            "3":   { name: "AUTO_STATUS_SEEN", value: true },
+            "3.1": { name: "AUTO_STATUS_SEEN", value: false },
+            "4":   { name: "AUTO_STATUS_REACT", value: true },
+            "4.1": { name: "AUTO_STATUS_REACT", value: false },
+            "5":   { name: "WORK_TYPE", value: "public" },
+            "5.1": { name: "WORK_TYPE", value: "private" }
+        };
 
-        // arguments නොමැති නම් උපදෙස් මාලාව පෙන්වීම
-        if (args.length < 2) {
+        // අංකය ඇතුළත් කර නැතිනම් Menu එක පෙන්වීම
+        if (!args[0] || !configMap[args[0]]) {
             let list = `${theme.header}\n${theme.line}\n`;
-            list += `${theme.line} 📝 *Usage:* .apply [setting] [value]\n`;
-            list += `${theme.line} 💡 *Example:* .apply PREFIX !\n${theme.line}\n`;
-            list += `${theme.line} ✨ *AVAILABLE SETTINGS* ✨\n`;
-            validSettings.forEach(s => {
-                list += `${theme.line}  ${theme.bullet} ${s}\n`;
-            });
-            list += `${theme.line}\n${theme.footer}`;
+            list += `${theme.line} 📝 *Usage:* .apply [Number]\n${theme.line}\n`;
+            
+            list += `${theme.line} 📞 *AUTO CALL END*\n`;
+            list += `${theme.line}    1 ➔ ON | 1.1 ➔ OFF\n${theme.line}\n`;
+            
+            list += `${theme.line} ⚡ *AUTO MSG REACT*\n`;
+            list += `${theme.line}    2 ➔ ON | 2.1 ➔ OFF\n${theme.line}\n`;
+            
+            list += `${theme.line} 👁️ *AUTO STATUS SEEN*\n`;
+            list += `${theme.line}    3 ➔ ON | 3.1 ➔ OFF\n${theme.line}\n`;
+            
+            list += `${theme.line} 💖 *AUTO STATUS REACT*\n`;
+            list += `${theme.line}    4 ➔ ON | 4.1 ➔ OFF\n${theme.line}\n`;
+            
+            list += `${theme.line} 🌐 *WORK MODE*\n`;
+            list += `${theme.line}    5 ➔ PUBLIC | 5.1 ➔ PRIVATE\n${theme.line}\n`;
+            
+            list += `${theme.footer}`;
             return reply(list);
         }
 
-        const settingName = args[0].toUpperCase();
-        let inputVal = args[1];
-        
-        if (!validSettings.includes(settingName)) {
-            return reply(`${theme.error} *Invalid Setting:* \`${settingName}\` \nනැවත උත්සාහ කරන්න.`);
-        }
-
-        let updateValue;
-
-        // Boolean Settings logic
-        if (['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'].includes(settingName)) {
-            let val = inputVal.toLowerCase();
-            if (val !== 'true' && val !== 'false') return reply(`${theme.error} කරුණාකර අගය *true* හෝ *false* ලෙස ඇතුළත් කරන්න.`);
-            updateValue = (val === 'true');
-        } 
-        // Work Type logic
-        else if (settingName === 'WORK_TYPE') {
-            let val = inputVal.toLowerCase();
-            if (val !== 'public' && val !== 'private') return reply(`${theme.error} Work Type එක *public* හෝ *private* විය යුතුය.`);
-            updateValue = val;
-        }
-        else {
-            updateValue = inputVal;
-        }
+        const selected = configMap[args[0]];
+        const settingName = selected.name;
+        const updateValue = selected.value;
 
         // Database Update
         await Settings.findOneAndUpdate(
@@ -84,22 +79,22 @@ async (test, mek, m, { args, reply, isOwner }) => {
         );
 
         let successMsg = `*${theme.success} CONFIGURATION UPDATED ✅* \n\n`;
-        successMsg += `💠 *Setting:* ${settingName}\n`;
-        successMsg += `✨ *New Value:* ${updateValue}\n\n`;
+        successMsg += `💠 *Setting:* ${settingName.replace(/_/g, ' ')}\n`;
+        successMsg += `✨ *New Value:* ${updateValue === true ? 'ON' : updateValue === false ? 'OFF' : updateValue.toUpperCase()}\n\n`;
         successMsg += `> *OSHIYA-MD System Updated*`;
 
         return reply(successMsg);
 
     } catch (e) {
         console.error("Config Error:", e);
-        return reply(`${theme.error} *Database error!* \nConsole එක පරීක්ෂා කරන්න.`);
+        return reply(`${theme.error} *Database error!*`);
     }
 });
 
-// --- GET CONFIG/STATUS COMMAND ---
+// --- GET CONFIG/STATUS PANEL ---
 cmd({
     pattern: "setting",
-    alias: ["settings", "allconfig", "status", "panel"],
+    alias: ["settings", "panel", "status"],
     react: "📊",
     desc: "Show current configurations",
     category: "owner",
@@ -110,7 +105,7 @@ async (test, mek, m, { reply, isOwner }) => {
         const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
         const isBotOwner = m.sender === botNumber || isOwner;
 
-        if (!isBotOwner) return reply("⚠️ *OWNER ONLY FEATURE* ⚠️");
+        if (!isBotOwner) return reply("⚠️ *OWNER ONLY*");
 
         let data = await Settings.findOne({ id: 'main_settings' });
         
@@ -133,17 +128,16 @@ async (test, mek, m, { reply, isOwner }) => {
         msg += `┃ 🌐 *Mode:* ${data.WORK_TYPE.toUpperCase()}\n`;
         msg += `┃ ⌨️ *Prefix:* [ ${data.PREFIX} ]\n`;
         msg += `┠━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n`;
-        msg += `┃ 📞 *Auto Call End:* ${statusIcon(data.AUTO_CALL_END)}\n`;
-        msg += `┃ ⚡ *Auto Msg React:* ${statusIcon(data.AUTO_MG_REACT)}\n`;
-        msg += `┃ 👁️ *Status Seen:* ${statusIcon(data.AUTO_STATUS_SEEN)}\n`;
-        msg += `┃ 💖 *Status React:* ${statusIcon(data.AUTO_STATUS_REACT)}\n`;
+        msg += `┃ 📞 *Auto Call End:* ${statusIcon(data.AUTO_CALL_END)} (1 / 1.1)\n`;
+        msg += `┃ ⚡ *Auto Msg React:* ${statusIcon(data.AUTO_MG_REACT)} (2 / 2.1)\n`;
+        msg += `┃ 👁️ *Status Seen:* ${statusIcon(data.AUTO_STATUS_SEEN)} (3 / 3.1)\n`;
+        msg += `┃ 💖 *Status React:* ${statusIcon(data.AUTO_STATUS_REACT)} (4 / 4.1)\n`;
         msg += `┗━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
-        msg += `💡 *Change:* Use \`.apply 🧑‍💻`;
+        msg += `💡 *Quick Change:* Use \`.apply [Number]\``;
         
         return reply(msg);
 
     } catch (e) {
-        console.error("GetConfig Error:", e);
         return reply("❌ Data retrieval error.");
     }
 });
