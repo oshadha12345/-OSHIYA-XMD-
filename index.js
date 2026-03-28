@@ -515,7 +515,7 @@ const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
 
 if (isCmd) {
 
-if (workType === 'private' && !isOwner) return;
+if (workType === 'private' && !isInbox) return;
 
 const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
 
