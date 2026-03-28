@@ -91,7 +91,7 @@ async function watchMegaSessions() {
 async function continuousWatch() {
     await watchMegaSessions();
     // තත්පර 5 කින් නැවත පරීක්ෂා කරයි (මෙය RAM එකට පහසුයි)
-    setTimeout(continuousWatch, 5000); 
+    setTimeout(continuousWatch, 30000); 
 }
 
 async function connectToWA(authPath, sessionLabel, originalFileName) {
