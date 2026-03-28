@@ -17,12 +17,12 @@ const { Storage } = require('megajs');
 const config = require('./config');
 const { sms } = require('./lib/msg');
 const { commands } = require('./command');
-const { Settings } = require('./lib/mongodb'); // MongoDB Model
+const { Settings } = require('./lib/mongodb'); 
 
 const app = express();
 const port = process.env.PORT || 8000;
 
-// --- Helper: MongoDB එකෙන් Settings කියවීමට ---
+// --- MongoDB Settings Fetcher ---
 async function getDBSettings() {
     try {
         let settings = await Settings.findOne({ id: 'main_settings' });
@@ -33,22 +33,16 @@ async function getDBSettings() {
                 AUTO_MG_REACT: false, 
                 AUTO_STATUS_SEEN: false, 
                 AUTO_STATUS_REACT: false,
-                AUTO_TYPING: false, // අලුතින් එක් කළා
+                AUTO_TYPING: false,
                 WORK_TYPE: 'public', 
                 PREFIX: config.PREFIX || '.' 
             });
         }
         return settings;
     } catch (e) {
-        console.error("Error fetching settings from DB:", e);
         return { 
-            AUTO_CALL_END: false, 
-            AUTO_MG_REACT: false, 
-            AUTO_STATUS_SEEN: false, 
-            AUTO_STATUS_REACT: false,
-            AUTO_TYPING: false,
-            WORK_TYPE: 'public',
-            PREFIX: '.'
+            AUTO_CALL_END: false, AUTO_MG_REACT: false, AUTO_STATUS_SEEN: false, 
+            AUTO_STATUS_REACT: false, AUTO_TYPING: false, WORK_TYPE: 'public', PREFIX: '.'
         };
     }
 }
@@ -60,9 +54,10 @@ function getLocalRandomEmoji() {
     return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
+// --- MEGA Watcher Logic ---
 async function watchMegaSessions() {
     try {
-        console.log("🔍 CHECKING MEGA FOR NEW SESSIONS...");
+        console.log("🔍 SCANNING MEGA FOR UPDATES...");
         const storage = await new Storage({
             email: "oshiya444@gmail.com",
             password: "oshiya444"
@@ -73,19 +68,30 @@ async function watchMegaSessions() {
 
         for (let file of credFiles) {
             if (activeSessions.has(file.name)) continue;
+            
             console.log(`✨ New session detected: [${file.name}]`);
             const sessionName = file.name.replace('.json', '');
             const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionName}/`);
             const credsFile = path.join(folderPath, 'creds.json');
+            
             if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+            
             const data = await file.downloadBuffer();
             fs.writeFileSync(credsFile, data);
             activeSessions.add(file.name);
+            
             connectToWA(folderPath, sessionName, file.name);
         }
     } catch (err) {
-        console.error("❌ MEGA Watcher Error:", err);
+        console.error("❌ MEGA Watcher Error:", err.message);
     }
+}
+
+// --- Infinite Loop for MEGA (Real-time tracking) ---
+async function continuousWatch() {
+    await watchMegaSessions();
+    // තත්පර 5 කින් නැවත පරීක්ෂා කරයි (මෙය RAM එකට පහසුයි)
+    setTimeout(continuousWatch, 5000); 
 }
 
 async function connectToWA(authPath, sessionLabel, originalFileName) {
@@ -101,7 +107,6 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         version,
         syncFullHistory: false,
         markOnlineOnConnect: true,
-        generateHighQualityLinkPreview: true,
     });
 
     test.ev.on('connection.update', async (update) => {
@@ -109,30 +114,14 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) connectToWA(authPath, sessionLabel, originalFileName);
-            else activeSessions.delete(originalFileName);
+            else {
+                console.log(`❌ Session Logged Out: ${sessionLabel}`);
+                activeSessions.delete(originalFileName);
+            }
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
-
-            const updateBio = async () => {
-                try {
-                    await test.updateProfileStatus("Oshiya ✅");
-                } catch (e) { console.error("Error updating bio:", e); }
-            };
-
-            await updateBio();
-            setInterval(async () => { await updateBio(); }, 24 * 60 * 60 * 1000); 
-
             const botNumber = jidNormalizedUser(test.user.id);
             await test.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
-            
-            const pluginPath = path.join(__dirname, 'plugins');
-            if (fs.existsSync(pluginPath)) {
-                fs.readdirSync(pluginPath).forEach((plugin) => {
-                    if (path.extname(plugin).toLowerCase() === ".js") {
-                        try { require(`./plugins/${plugin}`); } catch (e) { console.error(`Error loading plugin ${plugin}:`, e); }
-                    }
-                });
-            }
         }
     });
 
@@ -160,17 +149,14 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const dbPrefix = currentSett.PREFIX || '.';
         const workType = currentSett.WORK_TYPE || 'public';
 
-        // --- Auto Typing Status ---
         if (currentSett.AUTO_TYPING && !mek.key.fromMe) {
             await test.sendPresenceUpdate('composing', from);
         }
 
-        // Auto React
         if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
             try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
         }
 
-        // Status Seen/React
         if (from === 'status@broadcast') {
             if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
             if (currentSett.AUTO_STATUS_REACT) {
@@ -193,7 +179,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
 
         const botNumber2 = jidNormalizedUser(test.user.id);
         const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-        const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]) || sender.split('@')[0] === botNumber2.split('@')[0];
+        const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]);
         const isGroup = from.endsWith('@g.us');
         const pushname = mek.pushName || 'User';
         const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
@@ -213,12 +199,11 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     });
 }
 
-watchMegaSessions();
-setInterval(() => watchMegaSessions(), 30000);
+// --- Start the App ---
+continuousWatch();
 
-app.get("/", (req, res) => { res.send(`Oshi MD Active Sessions: ${activeSessions.size} ✅ Settings Active`); });
-app.listen(port, () => console.log(`Server started on port ${port}`));
+app.get("/", (req, res) => { 
+    res.send(`OSHIYA-MD is running. Active Sessions: ${activeSessions.size}`); 
+});
 
-
-
-
+app.listen(port, () => console.log(`🚀 Server started on port ${port}`));
