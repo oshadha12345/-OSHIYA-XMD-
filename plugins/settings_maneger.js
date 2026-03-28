@@ -34,6 +34,7 @@ async (test, mek, m, { args, reply, isOwner }) => {
             'AUTO_MG_REACT', 
             'AUTO_STATUS_SEEN', 
             'AUTO_STATUS_REACT',
+            'AUTO_TYPING',
             'WORK_TYPE', 
             'PREFIX'
         ];
@@ -61,7 +62,7 @@ async (test, mek, m, { args, reply, isOwner }) => {
         let updateValue;
 
         // Boolean Settings logic
-        if (['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'].includes(settingName)) {
+        if (['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_TYPING', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'].includes(settingName)) {
             let val = inputVal.toLowerCase();
             if (val !== 'true' && val !== 'false') return reply(`${theme.error} කරුණාකර අගය *true* හෝ *false* ලෙස ඇතුළත් කරන්න.`);
             updateValue = (val === 'true');
@@ -121,6 +122,7 @@ async (test, mek, m, { reply, isOwner }) => {
                 AUTO_MG_REACT: false,
                 AUTO_STATUS_SEEN: false,
                 AUTO_STATUS_REACT: false,
+                AUTO_TYPING: false,
                 WORK_TYPE: 'public',
                 PREFIX: '.'
             });
@@ -137,6 +139,7 @@ async (test, mek, m, { reply, isOwner }) => {
         msg += `┃ ⚡ *Auto Msg React:* ${statusIcon(data.AUTO_MG_REACT)}\n`;
         msg += `┃ 👁️ *Status Seen:* ${statusIcon(data.AUTO_STATUS_SEEN)}\n`;
         msg += `┃ 💖 *Status React:* ${statusIcon(data.AUTO_STATUS_REACT)}\n`;
+        msg += `┃ 🧑‍💻 *Auto Type:* ${statusIcon(data.AUTO_TYPING)}\n`;
         msg += `┗━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
         msg += `💡 *Change:* Use \`.apply 🧑‍💻`;
         
