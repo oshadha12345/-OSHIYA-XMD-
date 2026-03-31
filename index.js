@@ -22,6 +22,26 @@ const { Settings } = require('./lib/mongodb');
 const app = express();
 const port = process.env.PORT || 8000;
 
+// --- 1. Plugins Loader Logic ---
+// මෙමගින් plugins folder එකේ ඇති සියලුම .js ගොනු load කරනු ලබයි.
+const loadPlugins = () => {
+    const pluginsPath = path.join(__dirname, 'plugins');
+    if (fs.existsSync(pluginsPath)) {
+        fs.readdirSync(pluginsPath).forEach((file) => {
+            if (file.endsWith('.js')) {
+                try {
+                    require(path.join(pluginsPath, file));
+                    console.log(`✅ Loaded plugin: ${file}`);
+                } catch (e) {
+                    console.error(`❌ Error loading plugin ${file}:`, e);
+                }
+            }
+        });
+    }
+};
+
+loadPlugins(); // ආරම්භයේදීම විධාන load කරන්න
+
 // --- MongoDB Settings Fetcher ---
 async function getDBSettings() {
     try {
@@ -140,17 +160,17 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const mek = messages[0];
         if (!mek || !mek.message) return;
 
-        mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
+        const mtype = getContentType(mek.message);
+        mek.message = mtype === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
         
         const from = mek.key.remoteJid;
-        const type = getContentType(mek.message);
-        const body = (type === 'conversation') ? mek.message.conversation :
-                     (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
-                     (type === 'imageMessage') ? mek.message.imageMessage.caption :
-                     (type === 'videoMessage') ? mek.message.videoMessage.caption : '';
+        const body = (mtype === 'conversation') ? mek.message.conversation :
+                     (mtype === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
+                     (mtype === 'imageMessage') ? mek.message.imageMessage.caption :
+                     (mtype === 'videoMessage') ? mek.message.videoMessage.caption : '';
 
         const currentSett = await getDBSettings();
-        const dbPrefix = currentSett.PREFIX || '.';
+        const prefix = currentSett.PREFIX || '.';
 
         // 1. "oshiya" Contact Command
         if (body && body.toLowerCase() === 'oshiya') {
@@ -186,8 +206,8 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         }
 
         // 4. Command Handler
-        const isCmd = body.startsWith(dbPrefix);
-        const commandName = isCmd ? body.slice(dbPrefix.length).trim().split(" ")[0].toLowerCase() : '';
+        const isCmd = body.startsWith(prefix);
+        const commandName = isCmd ? body.slice(prefix.length).trim().split(" ")[0].toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
         const q = args.join(' ');
 
@@ -203,8 +223,8 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             if (cmd) {
                 if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                 try {
-                    cmd.function(test, mek, sms(test, mek), {
-                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, reply
+                    await cmd.function(test, mek, sms(test, mek), {
+                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, reply, isOwner
                     });
                 } catch (e) { 
                     console.error("Command Error:", e); 
