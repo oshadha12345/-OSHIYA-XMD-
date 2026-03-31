@@ -33,7 +33,6 @@ async function getDBSettings() {
                 AUTO_MG_REACT: false, 
                 AUTO_STATUS_SEEN: false, 
                 AUTO_STATUS_REACT: false,
-                AUTO_TYPING: false,
                 WORK_TYPE: 'public', 
                 PREFIX: config.PREFIX || '.' 
             });
@@ -42,7 +41,7 @@ async function getDBSettings() {
     } catch (e) {
         return { 
             AUTO_CALL_END: false, AUTO_MG_REACT: false, AUTO_STATUS_SEEN: false, 
-            AUTO_STATUS_REACT: false, AUTO_TYPING: false, WORK_TYPE: 'public', PREFIX: '.'
+            AUTO_STATUS_REACT: false, WORK_TYPE: 'public', PREFIX: '.'
         };
     }
 }
@@ -87,10 +86,8 @@ async function watchMegaSessions() {
     }
 }
 
-// --- Infinite Loop for MEGA (Real-time tracking) ---
 async function continuousWatch() {
     await watchMegaSessions();
-    // තත්පර 5 කින් නැවත පරීක්ෂා කරයි (මෙය RAM එකට පහසුයි)
     setTimeout(continuousWatch, 30000); 
 }
 
@@ -142,58 +139,43 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     test.ev.on('messages.upsert', async ({ messages }) => {
         const mek = messages[0];
         if (!mek || !mek.message) return;
-        const from = mek.key.remoteJid;
-        
-        vaScript
 
-// --- main.js ඇතුළත messages.upsert event එක තුළ මෙම කොටස එක් කරන්න ---
-
-test.ev.on('messages.upsert', async ({ messages }) => {
-    const mek = messages[0];
-    if (!mek || !mek.message) return;
-    const from = mek.key.remoteJid;
-    
-    // මෙසේජ් එකේ අන්තර්ගතය ලබා ගැනීම
-    const type = getContentType(mek.message);
-    const body = (type === 'conversation') ? mek.message.conversation :
-                 (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
-                 (type === 'imageMessage') ? mek.message.imageMessage.caption :
-                 (type === 'videoMessage') ? mek.message.videoMessage.caption : '';
-
-    // Prefix එක නැතිව වැඩ කරන "oshiya" command එක
-    if (body.toLowerCase() === 'oshiya') {
-        const vcard = 'BEGIN:VCARD\n' // vcard format එක ආරම්භය
-            + 'VERSION:3.0\n' 
-            + 'FN:OSHIYA\n' // මෙතනට නම දාන්න
-            + 'ORG:OSHIYA-MD;\n' 
-            + 'TEL;type=CELL;type=VOICE;waid=94756599952:+94 75 659 9952\n' // දුරකථන අංකය
-            + 'END:VCARD';
-
-        await test.sendMessage(from, { 
-            contacts: { 
-                displayName: 'OSHIYA', 
-                contacts: [{ vcard }] 
-            }
-        }, { quoted: mek });
-        
-        // කැමතිනම් reaction එකක් දාන්න පුළුවන්
-        await test.sendMessage(from, { react: { text: "👤", key: mek.key } });
-    }
-    
         mek.message = getContentType(mek.message) === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
+        
+        const from = mek.key.remoteJid;
+        const type = getContentType(mek.message);
+        const body = (type === 'conversation') ? mek.message.conversation :
+                     (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
+                     (type === 'imageMessage') ? mek.message.imageMessage.caption :
+                     (type === 'videoMessage') ? mek.message.videoMessage.caption : '';
 
         const currentSett = await getDBSettings();
         const dbPrefix = currentSett.PREFIX || '.';
-        const workType = currentSett.WORK_TYPE || 'public';
 
-        if (currentSett.AUTO_TYPING && !mek.key.fromMe) {
-            await test.sendPresenceUpdate('composing', from);
+        // 1. "oshiya" Contact Command
+        if (body && body.toLowerCase() === 'oshiya') {
+            const vcard = 'BEGIN:VCARD\n'
+                + 'VERSION:3.0\n' 
+                + 'FN:OSHIYA\n'
+                + 'ORG:OSHIYA-MD;\n' 
+                + 'TEL;type=CELL;type=VOICE;waid=94756599952:+94 75 659 9952\n'
+                + 'END:VCARD';
+
+            await test.sendMessage(from, { 
+                contacts: { 
+                    displayName: 'OSHIYA', 
+                    contacts: [{ vcard }] 
+                }
+            }, { quoted: mek });
+            await test.sendMessage(from, { react: { text: "👤", key: mek.key } });
         }
 
+        // 2. Auto Message React
         if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
             try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
         }
 
+        // 3. Status Auto Seen & React
         if (from === 'status@broadcast') {
             if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
             if (currentSett.AUTO_STATUS_REACT) {
@@ -203,12 +185,7 @@ test.ev.on('messages.upsert', async ({ messages }) => {
             }
         }
 
-        const type = getContentType(mek.message);
-        const body = (type === 'conversation') ? mek.message.conversation :
-                     (type === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
-                     (type == 'imageMessage') ? mek.message.imageMessage.caption :
-                     (type == 'videoMessage') ? mek.message.videoMessage.caption : '';
-
+        // 4. Command Handler
         const isCmd = body.startsWith(dbPrefix);
         const commandName = isCmd ? body.slice(dbPrefix.length).trim().split(" ")[0].toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
@@ -216,27 +193,27 @@ test.ev.on('messages.upsert', async ({ messages }) => {
 
         const botNumber2 = jidNormalizedUser(test.user.id);
         const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-        const isOwner = mek.key.fromMe || config.OWNER_NUMBER.includes(sender.split('@')[0]);
+        const isOwner = mek.key.fromMe || (config.OWNER_NUMBER && config.OWNER_NUMBER.includes(sender.split('@')[0]));
         const isGroup = from.endsWith('@g.us');
         const pushname = mek.pushName || 'User';
         const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
 
         if (isCmd) {
-            if (workType === 'private' && !isInbox) return;
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
             if (cmd) {
                 if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                 try {
                     cmd.function(test, mek, sms(test, mek), {
-                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, isInbox, reply
+                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, reply
                     });
-                } catch (e) { console.error(e); }
+                } catch (e) { 
+                    console.error("Command Error:", e); 
+                }
             }
         }
     });
 }
 
-// --- Start the App ---
 continuousWatch();
 
 app.get("/", (req, res) => { 
