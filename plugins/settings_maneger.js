@@ -1,108 +1,92 @@
 const { cmd } = require('../command');
 const { Settings } = require('../lib/mongodb');
 
-// පොදු සැකසුම් (Styling Constants)
-const theme = {
-    header: "╭━━━〔 *OSHIYA-MD* 〕━━━┈⊷",
-    footer: "╰━━━━━━━━━━━━━━━┈⊷",
+// --- PREMIUM UI THEME ---
+const ui = {
+    header: "🧑‍💻 ᴏꜱʜɪʏᴀ-ᴍᴅ 🧑‍💻",
     line: "┃",
-    bullet: "⚡",
+    divider: "┠━━━━━━━━━━━━━━━━━━━━━━┈⊷",
+    bottom: "┗━━━━━━━━━━━━━━━━━━━━━━┈⊷",
+    bullet: "✨",
+    on: "🟢 ON",
+    off: "🔴 OFF",
     success: "✅",
     error: "❌",
-    warning: "⚠️"
+    warn: "⚠️"
 };
 
-// --- CONFIG UPDATE COMMAND ---
+// --- CONFIGURATION APPLY COMMAND ---
 cmd({
     pattern: "apply",
-    alias: ["set", "updateconfig"],
+    alias: ["set", "update"],
     react: "⚙️",
-    desc: "Update bot configurations (Owner only)",
+    desc: "Update configurations using numbers",
     category: "owner",
-    use: ".use WORK_TYPE private",
+    use: ".apply 1 on",
     filename: __filename
 },
 async (test, mek, m, { args, reply, isOwner }) => {
     try {
         const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
         const isBotOwner = m.sender === botNumber || isOwner;
+        if (!isBotOwner) return reply(`${ui.warn} *ACCESS DENIED* \nමෙය හිමිකරුට පමණක් සීමා වේ.`);
 
-        if (!isBotOwner) return reply(`${theme.warning} *ACCESS DENIED* ${theme.warning}\n\nමෙය හිමිකරුට පමණක් භාවිතා කළ හැක.`);
+        // Setting Map (ඉල්ලීම පරිදි සකස් කළ ලැයිස්තුව)
+        const settingMap = {
+            "1": "AUTO_CALL_END",
+            "2": "AUTO_MG_REACT",
+            "3": "AUTO_STATUS_SEEN",
+            "4": "AUTO_STATUS_REACT",
+            "5": "PREFIX"
+        };
 
-        const validSettings = [
-            'AUTO_CALL_END', 
-            'AUTO_MG_REACT', 
-            'AUTO_STATUS_SEEN', 
-            'AUTO_STATUS_REACT',
-            'AUTO_TYPING',
-            'WORK_TYPE', 
-            'PREFIX'
-        ];
-
-        // arguments නොමැති නම් උපදෙස් මාලාව පෙන්වීම
         if (args.length < 2) {
-            let list = `${theme.header}\n${theme.line}\n`;
-            list += `${theme.line} 📝 *Usage:* .apply [setting] [value]\n`;
-            list += `${theme.line} 💡 *Example:* .apply PREFIX !\n${theme.line}\n`;
-            list += `${theme.line} ✨ *AVAILABLE SETTINGS* ✨\n`;
-            validSettings.forEach(s => {
-                list += `${theme.line}  ${theme.bullet} ${s}\n`;
-            });
-            list += `${theme.line}\n${theme.footer}`;
-            return reply(list);
+            return reply(`${ui.warn} *වැරදි භාවිතයක්!* \n\n💡 උදාහරණ:\n.apply 1 on (Call End On කිරීමට)\n.apply 5 ! (Prefix එක වෙනස් කිරීමට)`);
         }
 
-        const settingName = args[0].toUpperCase();
-        let inputVal = args[1];
-        
-        if (!validSettings.includes(settingName)) {
-            return reply(`${theme.error} *Invalid Setting:* \`${settingName}\` \nනැවත උත්සාහ කරන්න.`);
-        }
+        const choice = args[0];
+        const inputVal = args[1].toLowerCase();
+        const settingName = settingMap[choice];
+
+        if (!settingName) return reply(`${ui.error} *අංකය වැරදියි!* \nකරුණාකර 1 සිට 5 දක්වා අංකයක් භාවිතා කරන්න.`);
 
         let updateValue;
-
-        // Boolean Settings logic
-        if (['AUTO_CALL_END', 'AUTO_MG_REACT', 'AUTO_TYPING', 'AUTO_STATUS_SEEN', 'AUTO_STATUS_REACT'].includes(settingName)) {
-            let val = inputVal.toLowerCase();
-            if (val !== 'true' && val !== 'false') return reply(`${theme.error} කරුණාකර අගය *true* හෝ *false* ලෙස ඇතුළත් කරන්න.`);
-            updateValue = (val === 'true');
-        } 
-        // Work Type logic
-        else if (settingName === 'WORK_TYPE') {
-            let val = inputVal.toLowerCase();
-            if (val !== 'public' && val !== 'private') return reply(`${theme.error} Work Type එක *public* හෝ *private* විය යුතුය.`);
-            updateValue = val;
-        }
-        else {
-            updateValue = inputVal;
+        
+        // Boolean conversion (1-4 settings සඳහා)
+        if (choice !== "5") {
+            if (inputVal === 'on' || inputVal === 'true' || inputVal === '1') {
+                updateValue = true;
+            } else if (inputVal === 'off' || inputVal === 'false' || inputVal === '0') {
+                updateValue = false;
+            } else {
+                return reply(`${ui.error} කරුණාකර අගය *on* හෝ *off* ලෙස ඇතුළත් කරන්න.`);
+            }
+        } else {
+            // Prefix සඳහා
+            updateValue = args[1];
         }
 
         // Database Update
         await Settings.findOneAndUpdate(
             { id: 'main_settings' }, 
             { [settingName]: updateValue }, 
-            { upsert: true, new: true }
+            { upsert: true }
         );
 
-        let successMsg = `*${theme.success} CONFIGURATION UPDATED ✅* \n\n`;
-        successMsg += `💠 *Setting:* ${settingName}\n`;
-        successMsg += `✨ *New Value:* ${updateValue}\n\n`;
-        successMsg += `> *OSHIYA-MD System Updated*`;
-
-        return reply(successMsg);
+        return reply(`${ui.success} *SETTING UPDATED*\n\n⚙️ *Property:* ${settingName}\n✨ *New State:* ${updateValue === true ? ui.on : (updateValue === false ? ui.off : updateValue)}`);
 
     } catch (e) {
-        console.error("Config Error:", e);
-        return reply(`${theme.error} *Database error!* \nConsole එක පරීක්ෂා කරන්න.`);
+        console.error(e);
+        return reply(`${ui.error} *Database Error!*`);
     }
 });
 
-// --- GET CONFIG/STATUS COMMAND ---
+// --- STATUS / PANEL COMMAND ---
 cmd({
-    pattern: "setting",
-    alias: ["settings", "allconfig", "status", "panel"],
+    pattern: "panel",
+    alias: ["setting", "settings", "status"],
     react: "📊",
-    desc: "Show current configurations",
+    desc: "Show premium control panel",
     category: "owner",
     filename: __filename
 },
@@ -110,11 +94,9 @@ async (test, mek, m, { reply, isOwner }) => {
     try {
         const botNumber = test.user.id.split(':')[0] + '@s.whatsapp.net';
         const isBotOwner = m.sender === botNumber || isOwner;
-
-        if (!isBotOwner) return reply("⚠️ *OWNER ONLY FEATURE* ⚠️");
+        if (!isBotOwner) return reply(`${ui.warn} *OWNER ONLY*`);
 
         let data = await Settings.findOne({ id: 'main_settings' });
-        
         if (!data) {
             data = await Settings.create({ 
                 id: 'main_settings',
@@ -122,31 +104,27 @@ async (test, mek, m, { reply, isOwner }) => {
                 AUTO_MG_REACT: false,
                 AUTO_STATUS_SEEN: false,
                 AUTO_STATUS_REACT: false,
-                AUTO_TYPING: false,
-                WORK_TYPE: 'public',
                 PREFIX: '.'
             });
         }
 
-        const statusIcon = (val) => val ? '🟩 ON' : '🟥 OFF';
-        
-        let msg = `✨ *OSHIYA-MD CONTROL PANEL* ✨\n\n`;
-        msg += `┏━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n`;
-        msg += `┃ 🌐 *Mode:* ${data.WORK_TYPE.toUpperCase()}\n`;
-        msg += `┃ ⌨️ *Prefix:* [ ${data.PREFIX} ]\n`;
-        msg += `┠━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n`;
-        msg += `┃ 📞 *Auto Call End:* ${statusIcon(data.AUTO_CALL_END)}\n`;
-        msg += `┃ ⚡ *Auto Msg React:* ${statusIcon(data.AUTO_MG_REACT)}\n`;
-        msg += `┃ 👁️ *Status Seen:* ${statusIcon(data.AUTO_STATUS_SEEN)}\n`;
-        msg += `┃ 💖 *Status React:* ${statusIcon(data.AUTO_STATUS_REACT)}\n`;
-        msg += `┃ 🧑‍💻 *Auto Type:* ${statusIcon(data.AUTO_TYPING)}\n`;
-        msg += `┗━━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
-        msg += `💡 *Change:* Use \`.apply 🧑‍💻`;
-        
-        return reply(msg);
+        const getStatus = (val) => val ? ui.on : ui.off;
+
+        let panel = `      ${ui.header}\n\n`;
+        panel += `┏━━━━━━━━━━━━━━━━━━━━━━┈⊷\n`;
+        panel += `┃ [ 1 ] *Auto Call End* : ${getStatus(data.AUTO_CALL_END)}\n`;
+        panel += `┃ [ 2 ] *Auto Msg React*: ${getStatus(data.AUTO_MG_REACT)}\n`;
+        panel += `┃ [ 3 ] *Status Seen* : ${getStatus(data.AUTO_STATUS_SEEN)}\n`;
+        panel += `┃ [ 4 ] *Status React* : ${getStatus(data.AUTO_STATUS_REACT)}\n`;
+        panel += `┃ [ 5 ] *Bot Prefix* : [ ${data.PREFIX} ]\n`;
+        panel += `${ui.bottom}\n\n`;
+        panel += `📝 *සැකසුම් වෙනස් කිරීමට:* \n\`.apply [Number] [on/off]\` භාවිතා කරන්න.\n\n`;
+        panel += `> *ᴏꜱʜɪʏᴀ ᴍᴅ 🧑‍💻*`;
+
+        return reply(panel);
 
     } catch (e) {
-        console.error("GetConfig Error:", e);
-        return reply("❌ Data retrieval error.");
+        console.error(e);
+        return reply("❌ Error fetching settings.");
     }
 });
