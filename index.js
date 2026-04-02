@@ -16,7 +16,7 @@ const path = require('path');
 const config = require('./config');
 const { sms } = require('./lib/msg');
 const { commands } = require('./command');
-const { Settings, Session } = require('./lib/mongodb'); // Session model එක මෙතනින් ගනී
+const { Settings, Session } = require('./lib/mongodb');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -40,7 +40,7 @@ const loadPlugins = () => {
 
 loadPlugins();
 
-// --- 2. MongoDB Settings Fetcher ---
+// --- 2. Database & Utils ---
 async function getDBSettings() {
     try {
         let settings = await Settings.findOne({ id: 'main_settings' });
@@ -68,48 +68,65 @@ const activeSessions = new Set();
 const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
 
 function getLocalRandomEmoji() {
-    return emojis[1 + Math.floor(Math.random() * (emojis.length - 1))];
+    return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
-// --- 3. MongoDB Session Watcher ---
-// MongoDB එකේ key එක 'ᴏꜱʜɪʏᴀ~' ලෙස ඇති සියලුම Session වලට සම්බන්ධ වේ
-async function watchMongoSessions() {
+// --- 3. Combined Session Manager ---
+async function startMultiSessionManager() {
     try {
-        console.log("🔍 SCANNING MONGODB FOR SESSIONS...");
-        
-        // MongoDB collection එකේ key එක 'ᴏꜱʜɪʏᴀ~' වලින් පටන් ගන්නා දත්ත සොයයි
-        const dbSessions = await Session.find({ key: { $regex: /^ᴏꜱʜɪʏᴀ~/ } });
+        console.log("🔍 SCANNING FOR SESSIONS (CONFIG & DB)...");
 
-        for (let sessionDoc of dbSessions) {
-            const sessionID = sessionDoc.key;
-
-            if (activeSessions.has(sessionID)) continue;
-            
-            console.log(`✨ New session detected in DB: [${sessionID}]`);
-            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
-            const credsFile = path.join(folderPath, 'creds.json');
-            
-            if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
-            
-            // Session දත්ත JSON එකක් ලෙස creds.json එකට ලියයි
-            const credsData = typeof sessionDoc.value === 'string' 
-                ? sessionDoc.value 
-                : JSON.stringify(sessionDoc.value);
-
-            fs.writeFileSync(credsFile, credsData);
-            activeSessions.add(sessionID);
-            
-            // Bot එක Connect කිරීම
-            connectToWA(folderPath, sessionID);
+        // 1. Config එකේ ඇති Session ID එක පරීක්ෂා කිරීම
+        let configSID = config.SESSION_ID;
+        if (configSID) {
+            // ඉදිරියෙන් ᴏꜱʜɪʏᴀ~ නොමැති නම් එය එකතු කරයි
+            if (!configSID.startsWith('ᴏꜱʜɪʏᴀ~')) {
+                configSID = 'ᴏꜱʜɪʏᴀ~' + configSID;
+            }
+            await processSession(configSID);
         }
+
+        // 2. MongoDB එකේ ඇති Sessions පරීක්ෂා කිරීම
+        const dbSessions = await Session.find({ key: { $regex: /^ᴏꜱʜɪʏᴀ~/ } });
+        for (let sessionDoc of dbSessions) {
+            await processSession(sessionDoc.key, sessionDoc.value);
+        }
+
     } catch (err) {
-        console.error("❌ MongoDB Watcher Error:", err.message);
+        console.error("❌ Session Manager Error:", err.message);
     }
 }
 
+async function processSession(sessionID, dbValue = null) {
+    if (activeSessions.has(sessionID)) return;
+
+    console.log(`✨ Initializing session: [${sessionID}]`);
+    const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
+    const credsFile = path.join(folderPath, 'creds.json');
+
+    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+
+    // DB එකෙන් ලැබුණු අගයක් ඇත්නම් එය භාවිතා කරයි, නැතහොත් Config එකෙන් එන session එක DB එකේ ඇති දැයි බලයි
+    let finalValue = dbValue;
+    if (!finalValue) {
+        const found = await Session.findOne({ key: sessionID });
+        if (found) finalValue = found.value;
+    }
+
+    if (finalValue) {
+        const credsData = typeof finalValue === 'string' ? finalValue : JSON.stringify(finalValue);
+        fs.writeFileSync(credsFile, credsData);
+        activeSessions.add(sessionID);
+        connectToWA(folderPath, sessionID);
+    } else {
+        console.log(`⚠️ No credentials found for ${sessionID}. Skipping...`);
+    }
+}
+
+// තත්පර 30කට වරක් අලුත් sessions තිබේදැයි බලයි
 async function continuousWatch() {
-    await watchMongoSessions();
-    setTimeout(continuousWatch, 30000); // සෑම තත්පර 30කට වරක් පරීක්ෂා කරයි
+    await startMultiSessionManager();
+    setTimeout(continuousWatch, 30000);
 }
 
 // --- 4. WhatsApp Connection Logic ---
@@ -137,8 +154,7 @@ async function connectToWA(authPath, sessionLabel) {
             } else {
                 console.log(`❌ Session Logged Out: ${sessionLabel}`);
                 activeSessions.delete(sessionLabel);
-                // ඉවත් වූ session එකේ folder එක මකා දැමිය හැක (optional)
-                fs.rmSync(authPath, { recursive: true, force: true });
+                if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
             }
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
@@ -155,7 +171,7 @@ async function connectToWA(authPath, sessionLabel) {
             for (let call of callData) {
                 if (call.status === "offer") {
                     await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 බොට් විසින්" });
+                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭𝐨 𝐁𝐥𝐨𝐜𝐤 𝐛𝐲 𝐁𝐨𝐭" });
                 }
             }
         }
@@ -177,30 +193,7 @@ async function connectToWA(authPath, sessionLabel) {
         const currentSett = await getDBSettings();
         const prefix = currentSett.PREFIX || '.';
 
-        // "oshiya" Contact Command
-        if (body && body.toLowerCase() === 'oshiya') {
-            const vcard = 'BEGIN:VCARD\n'
-                + 'VERSION:3.0\n' 
-                + 'FN:OSHIYA\n'
-                + 'ORG:OSHIYA-MD;\n' 
-                + 'TEL;type=CELL;type=VOICE;waid=94756599952:+94 75 659 9952\n'
-                + 'END:VCARD';
-
-            await test.sendMessage(from, { 
-                contacts: { 
-                    displayName: 'OSHIYA', 
-                    contacts: [{ vcard }] 
-                }
-            }, { quoted: mek });
-            await test.sendMessage(from, { react: { text: "👤", key: mek.key } });
-        }
-
-        // Auto Message React
-        if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
-            try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
-        }
-
-        // Status Auto Seen & React
+        // Auto Status Seen & React
         if (from === 'status@broadcast') {
             if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
             if (currentSett.AUTO_STATUS_REACT) {
@@ -212,18 +205,18 @@ async function connectToWA(authPath, sessionLabel) {
 
         // Command Handler
         const isCmd = body.startsWith(prefix);
-        const commandName = isCmd ? body.slice(prefix.length).trim().split(" ")[0].toLowerCase() : '';
-        const args = body.trim().split(/ +/).slice(1);
-        const q = args.join(' ');
-
-        const botNumber2 = jidNormalizedUser(test.user.id);
-        const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-        const isOwner = mek.key.fromMe || (config.OWNER_NUMBER && config.OWNER_NUMBER.includes(sender.split('@')[0]));
-        const isGroup = from.endsWith('@g.us');
-        const pushname = mek.pushName || 'User';
-        const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
-
         if (isCmd) {
+            const commandName = body.slice(prefix.length).trim().split(" ")[0].toLowerCase();
+            const args = body.trim().split(/ +/).slice(1);
+            const q = args.join(' ');
+
+            const botNumber2 = jidNormalizedUser(test.user.id);
+            const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
+            const isOwner = mek.key.fromMe || (config.OWNER_NUMBER && config.OWNER_NUMBER.includes(sender.split('@')[0]));
+            const isGroup = from.endsWith('@g.us');
+            const pushname = mek.pushName || 'User';
+            const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
+
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
             if (cmd) {
                 if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
@@ -243,7 +236,7 @@ async function connectToWA(authPath, sessionLabel) {
 continuousWatch();
 
 app.get("/", (req, res) => { 
-    res.send(`OSHIYA-MD is running. Active Sessions: ${activeSessions.size}`); 
+    res.send(`OSHIYA-MD is running. Active Multi-Sessions: ${activeSessions.size}`); 
 });
 
 app.listen(port, () => console.log(`🚀 Server started on port ${port}`));
