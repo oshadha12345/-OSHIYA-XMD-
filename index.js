@@ -12,18 +12,16 @@ const fs = require('fs');
 const P = require('pino');
 const express = require('express');
 const path = require('path');
-const { Storage } = require('megajs');
 
 const config = require('./config');
 const { sms } = require('./lib/msg');
 const { commands } = require('./command');
-const { Settings } = require('./lib/mongodb'); 
+const { Settings, Session } = require('./lib/mongodb'); // Session model එක මෙතනින් ගනී
 
 const app = express();
 const port = process.env.PORT || 8000;
 
-// --- 1. Plugins Loader Logic ---
-// මෙමගින් plugins folder එකේ ඇති සියලුම .js ගොනු load කරනු ලබයි.
+// --- 1. Plugins Loader ---
 const loadPlugins = () => {
     const pluginsPath = path.join(__dirname, 'plugins');
     if (fs.existsSync(pluginsPath)) {
@@ -40,9 +38,9 @@ const loadPlugins = () => {
     }
 };
 
-loadPlugins(); // ආරම්භයේදීම විධාන load කරන්න
+loadPlugins();
 
-// --- MongoDB Settings Fetcher ---
+// --- 2. MongoDB Settings Fetcher ---
 async function getDBSettings() {
     try {
         let settings = await Settings.findOne({ id: 'main_settings' });
@@ -70,48 +68,52 @@ const activeSessions = new Set();
 const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
 
 function getLocalRandomEmoji() {
-    return emojis[Math.floor(Math.random() * emojis.length)];
+    return emojis[1 + Math.floor(Math.random() * (emojis.length - 1))];
 }
 
-// --- MEGA Watcher Logic ---
-async function watchMegaSessions() {
+// --- 3. MongoDB Session Watcher ---
+// MongoDB එකේ key එක 'ᴏꜱʜɪʏᴀ~' ලෙස ඇති සියලුම Session වලට සම්බන්ධ වේ
+async function watchMongoSessions() {
     try {
-        console.log("🔍 SCANNING MEGA FOR UPDATES...");
-        const storage = await new Storage({
-            email: "oshiya444@gmail.com",
-            password: "oshiya444"
-        }).ready;
+        console.log("🔍 SCANNING MONGODB FOR SESSIONS...");
+        
+        // MongoDB collection එකේ key එක 'ᴏꜱʜɪʏᴀ~' වලින් පටන් ගන්නා දත්ත සොයයි
+        const dbSessions = await Session.find({ key: { $regex: /^ᴏꜱʜɪʏᴀ~/ } });
 
-        const files = storage.root.children;
-        const credFiles = files.filter(f => f.name.endsWith('.json'));
+        for (let sessionDoc of dbSessions) {
+            const sessionID = sessionDoc.key;
 
-        for (let file of credFiles) {
-            if (activeSessions.has(file.name)) continue;
+            if (activeSessions.has(sessionID)) continue;
             
-            console.log(`✨ New session detected: [${file.name}]`);
-            const sessionName = file.name.replace('.json', '');
-            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionName}/`);
+            console.log(`✨ New session detected in DB: [${sessionID}]`);
+            const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
             const credsFile = path.join(folderPath, 'creds.json');
             
             if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
             
-            const data = await file.downloadBuffer();
-            fs.writeFileSync(credsFile, data);
-            activeSessions.add(file.name);
+            // Session දත්ත JSON එකක් ලෙස creds.json එකට ලියයි
+            const credsData = typeof sessionDoc.value === 'string' 
+                ? sessionDoc.value 
+                : JSON.stringify(sessionDoc.value);
+
+            fs.writeFileSync(credsFile, credsData);
+            activeSessions.add(sessionID);
             
-            connectToWA(folderPath, sessionName, file.name);
+            // Bot එක Connect කිරීම
+            connectToWA(folderPath, sessionID);
         }
     } catch (err) {
-        console.error("❌ MEGA Watcher Error:", err.message);
+        console.error("❌ MongoDB Watcher Error:", err.message);
     }
 }
 
 async function continuousWatch() {
-    await watchMegaSessions();
-    setTimeout(continuousWatch, 30000); 
+    await watchMongoSessions();
+    setTimeout(continuousWatch, 30000); // සෑම තත්පර 30කට වරක් පරීක්ෂා කරයි
 }
 
-async function connectToWA(authPath, sessionLabel, originalFileName) {
+// --- 4. WhatsApp Connection Logic ---
+async function connectToWA(authPath, sessionLabel) {
     console.log(`🚀 STARTING INSTANCE: [${sessionLabel}]`);
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
     const { version } = await fetchLatestBaileysVersion();
@@ -130,10 +132,13 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) connectToWA(authPath, sessionLabel, originalFileName);
-            else {
+            if (shouldReconnect) {
+                connectToWA(authPath, sessionLabel);
+            } else {
                 console.log(`❌ Session Logged Out: ${sessionLabel}`);
-                activeSessions.delete(originalFileName);
+                activeSessions.delete(sessionLabel);
+                // ඉවත් වූ session එකේ folder එක මකා දැමිය හැක (optional)
+                fs.rmSync(authPath, { recursive: true, force: true });
             }
         } else if (connection === 'open') {
             console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
@@ -150,7 +155,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             for (let call of callData) {
                 if (call.status === "offer") {
                     await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 𝐛𝐲 𝐁ොට්" });
+                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭ො 𝐁𝐥ො𝐜𝐤 බොට් විසින්" });
                 }
             }
         }
@@ -172,7 +177,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
         const currentSett = await getDBSettings();
         const prefix = currentSett.PREFIX || '.';
 
-        // 1. "oshiya" Contact Command
+        // "oshiya" Contact Command
         if (body && body.toLowerCase() === 'oshiya') {
             const vcard = 'BEGIN:VCARD\n'
                 + 'VERSION:3.0\n' 
@@ -190,12 +195,12 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             await test.sendMessage(from, { react: { text: "👤", key: mek.key } });
         }
 
-        // 2. Auto Message React
+        // Auto Message React
         if (currentSett.AUTO_MG_REACT && !mek.key.fromMe && from !== "status@broadcast") {
             try { await test.sendMessage(from, { react: { text: getLocalRandomEmoji(), key: mek.key } }); } catch (err) {}
         }
 
-        // 3. Status Auto Seen & React
+        // Status Auto Seen & React
         if (from === 'status@broadcast') {
             if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
             if (currentSett.AUTO_STATUS_REACT) {
@@ -205,7 +210,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
             }
         }
 
-        // 4. Command Handler
+        // Command Handler
         const isCmd = body.startsWith(prefix);
         const commandName = isCmd ? body.slice(prefix.length).trim().split(" ")[0].toLowerCase() : '';
         const args = body.trim().split(/ +/).slice(1);
@@ -234,6 +239,7 @@ async function connectToWA(authPath, sessionLabel, originalFileName) {
     });
 }
 
+// ආරම්භ කිරීම
 continuousWatch();
 
 app.get("/", (req, res) => { 
