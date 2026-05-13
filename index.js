@@ -12,6 +12,7 @@ const fs = require('fs');
 const P = require('pino');
 const express = require('express');
 const path = require('path');
+const { Storage } = require('megajs'); // Mega.nz සඳහා
 
 const config = require('./config');
 const { sms } = require('./lib/msg');
@@ -29,18 +30,17 @@ const loadPlugins = () => {
             if (file.endsWith('.js')) {
                 try {
                     require(path.join(pluginsPath, file));
-                    console.log(`✅ Loaded plugin: ${file}`);
                 } catch (e) {
                     console.error(`❌ Error loading plugin ${file}:`, e);
                 }
             }
         });
+        console.log(`✅ Plugins Loaded.`);
     }
 };
-
 loadPlugins();
 
-// --- 2. Database & Utils ---
+// --- 2. Database Utils ---
 async function getDBSettings() {
     try {
         let settings = await Settings.findOne({ id: 'main_settings' });
@@ -48,195 +48,159 @@ async function getDBSettings() {
             settings = await Settings.create({ 
                 id: 'main_settings',
                 AUTO_CALL_END: false, 
-                AUTO_MG_REACT: false, 
-                AUTO_STATUS_SEEN: false, 
-                AUTO_STATUS_REACT: false,
                 WORK_TYPE: 'public', 
                 PREFIX: config.PREFIX || '.' 
             });
         }
         return settings;
     } catch (e) {
-        return { 
-            AUTO_CALL_END: false, AUTO_MG_REACT: false, AUTO_STATUS_SEEN: false, 
-            AUTO_STATUS_REACT: false, WORK_TYPE: 'public', PREFIX: '.'
-        };
+        return { PREFIX: config.PREFIX || '.' };
     }
 }
 
-const activeSessions = new Set();
-const emojis = ["😀", "😂", "😎", "🔥", "💯", "❤️", "🥶", "😅", "🤖"];
+const activeSessions = new Map();
 
-function getLocalRandomEmoji() {
-    return emojis[Math.floor(Math.random() * emojis.length)];
-}
-
-// --- 3. Combined Session Manager ---
-async function startMultiSessionManager() {
+// --- 3. Mega.nz Session Downloader ---
+// සටහන: මෙහි EMAIL සහ PASSWORD ඔබගේ ගිණුමට අනුව config එකට එක් කරන්න.
+async function syncFromMega() {
     try {
-        console.log("🔍 SCANNING FOR SESSIONS (CONFIG & DB)...");
+        if (!config.MEGA_EMAIL || !config.MEGA_PASSWORD) {
+            console.log("⚠️ Mega credentials not provided. Skipping Mega sync.");
+            return;
+        }
 
-        // 1. Config එකේ ඇති Session ID එක පරීක්ෂා කිරීම
-        let configSID = config.SESSION_ID;
-        if (configSID) {
-            // ඉදිරියෙන් ᴏꜱʜɪʏᴀ~ නොමැති නම් එය එකතු කරයි
-            if (!configSID.startsWith('ᴏꜱʜɪʏᴀ~')) {
-                configSID = 'ᴏꜱʜɪʏᴀ~' + configSID;
+        const storage = await new Storage({
+            email: config.MEGA_EMAIL,
+            password: config.MEGA_PASSWORD
+        }).ready;
+
+        console.log("📂 Connected to Mega.nz. Searching for sessions...");
+
+        // Mega ගිණුමේ ඇති සියලුම ගොනු පරීක්ෂා කිරීම
+        for (const file of Object.values(storage.files)) {
+            if (file.name === 'creds.json') {
+                // Folder එකේ නම Session ID එක ලෙස සලකයි
+                const sessionID = file.parent.name; 
+                if (sessionID && sessionID.startsWith('ᴏꜱʜɪʏᴀ~')) {
+                    const data = await file.downloadBuffer();
+                    await processSession(sessionID, data.toString());
+                }
             }
-            await processSession(configSID);
         }
-
-        // 2. MongoDB එකේ ඇති Sessions පරීක්ෂා කිරීම
-        const dbSessions = await Session.find({ key: { $regex: /^ᴏꜱʜɪʏᴀ~/ } });
-        for (let sessionDoc of dbSessions) {
-            await processSession(sessionDoc.key, sessionDoc.value);
-        }
-
     } catch (err) {
-        console.error("❌ Session Manager Error:", err.message);
+        console.error("❌ Mega Sync Error:", err.message);
     }
 }
 
-async function processSession(sessionID, dbValue = null) {
+// --- 4. Session Processor ---
+async function processSession(sessionID, credsContent = null) {
     if (activeSessions.has(sessionID)) return;
 
-    console.log(`✨ Initializing session: [${sessionID}]`);
-    const folderPath = path.join(__dirname, `/auth_info_baileys/${sessionID}/`);
+    // Folder නමේ ඇති විශේෂ අකුරු ඉවත් කර පද්ධතියට ගැළපෙන ලෙස සකසයි
+    const safeFolderName = sessionID.replace(/[^a-zA-Z0-9]/g, '_');
+    const folderPath = path.join(__dirname, 'auth_info_baileys', safeFolderName);
     const credsFile = path.join(folderPath, 'creds.json');
 
     if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
-    // DB එකෙන් ලැබුණු අගයක් ඇත්නම් එය භාවිතා කරයි, නැතහොත් Config එකෙන් එන session එක DB එකේ ඇති දැයි බලයි
-    let finalValue = dbValue;
+    let finalValue = credsContent;
     if (!finalValue) {
         const found = await Session.findOne({ key: sessionID });
         if (found) finalValue = found.value;
     }
 
     if (finalValue) {
-        const credsData = typeof finalValue === 'string' ? finalValue : JSON.stringify(finalValue);
-        fs.writeFileSync(credsFile, credsData);
-        activeSessions.add(sessionID);
-        connectToWA(folderPath, sessionID);
-    } else {
-        console.log(`⚠️ No credentials found for ${sessionID}. Skipping...`);
+        try {
+            fs.writeFileSync(credsFile, typeof finalValue === 'string' ? finalValue : JSON.stringify(finalValue));
+            activeSessions.set(sessionID, true);
+            await connectToWA(folderPath, sessionID);
+        } catch (err) {
+            console.error(`❌ Failed to save session ${sessionID}:`, err);
+        }
     }
 }
 
-// තත්පර 30කට වරක් අලුත් sessions තිබේදැයි බලයි
-async function continuousWatch() {
-    await startMultiSessionManager();
-    setTimeout(continuousWatch, 30000);
-}
-
-// --- 4. WhatsApp Connection Logic ---
+// --- 5. WhatsApp Connection ---
 async function connectToWA(authPath, sessionLabel) {
-    console.log(`🚀 STARTING INSTANCE: [${sessionLabel}]`);
     const { state, saveCreds } = await useMultiFileAuthState(authPath);
     const { version } = await fetchLatestBaileysVersion();
 
-    const test = makeWASocket({
+    const conn = makeWASocket({
         logger: P({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: Browsers.macOS("Firefox"),
+        browser: Browsers.macOS("Desktop"),
         auth: state,
-        version,
-        syncFullHistory: false,
-        markOnlineOnConnect: true,
+        version
     });
 
-    test.ev.on('connection.update', async (update) => {
+    conn.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) {
-                connectToWA(authPath, sessionLabel);
+                setTimeout(() => connectToWA(authPath, sessionLabel), 5000);
             } else {
                 console.log(`❌ Session Logged Out: ${sessionLabel}`);
                 activeSessions.delete(sessionLabel);
                 if (fs.existsSync(authPath)) fs.rmSync(authPath, { recursive: true, force: true });
             }
         } else if (connection === 'open') {
-            console.log(`✅ OSHIYA-XMD [${sessionLabel}] CONNECTED 💫`);
-            const botNumber = jidNormalizedUser(test.user.id);
-            await test.sendMessage(botNumber, { text: `🚀 OSHIYA-MD [${sessionLabel}] IS NOW ONLINE!` });
+            console.log(`✅ OSHIYA-MD [${sessionLabel}] CONNECTED!`);
+            await conn.sendMessage(jidNormalizedUser(conn.user.id), { text: `🚀 Session ${sessionLabel} is now active!` });
         }
     });
 
-    test.ev.on('creds.update', saveCreds);
+    conn.ev.on('creds.update', saveCreds);
 
-    test.ev.on("call", async (callData) => {
-        const currentSett = await getDBSettings();
-        if (currentSett.AUTO_CALL_END) {
-            for (let call of callData) {
-                if (call.status === "offer") {
-                    await test.rejectCall(call.id, call.from);
-                    await test.sendMessage(call.from, { text: "⚠️ 𝐂𝐀𝐋𝐋 𝐑𝐄𝐉𝐄𝐂𝐓 - 𝐀𝐮𝐭𝐨 𝐁𝐥𝐨𝐜𝐤 𝐛𝐲 𝐁𝐨𝐭" });
-                }
-            }
-        }
-    });
-
-    test.ev.on('messages.upsert', async ({ messages }) => {
+    // Message Handler
+    conn.ev.on('messages.upsert', async ({ messages }) => {
         const mek = messages[0];
-        if (!mek || !mek.message) return;
+        if (!mek.message) return;
 
         const mtype = getContentType(mek.message);
-        mek.message = mtype === 'ephemeralMessage' ? mek.message.ephemeralMessage.message : mek.message;
-        
-        const from = mek.key.remoteJid;
         const body = (mtype === 'conversation') ? mek.message.conversation :
                      (mtype === 'extendedTextMessage') ? mek.message.extendedTextMessage.text :
                      (mtype === 'imageMessage') ? mek.message.imageMessage.caption :
                      (mtype === 'videoMessage') ? mek.message.videoMessage.caption : '';
 
-        const currentSett = await getDBSettings();
-        const prefix = currentSett.PREFIX || '.';
+        const settings = await getDBSettings();
+        const prefix = settings.PREFIX || '.';
 
-        // Auto Status Seen & React
-        if (from === 'status@broadcast') {
-            if (currentSett.AUTO_STATUS_SEEN) await test.readMessages([mek.key]);
-            if (currentSett.AUTO_STATUS_REACT) {
-                const statusEmojis = ['❤️', '🔥', '💯', '✨', '💎'];
-                const randomEmoji = statusEmojis[Math.floor(Math.random() * statusEmojis.length)];
-                await test.sendMessage(mek.key.participant, { react: { text: randomEmoji, key: mek.key } }, { statusForward: true });
-            }
-        }
-
-        // Command Handler
-        const isCmd = body.startsWith(prefix);
-        if (isCmd) {
-            const commandName = body.slice(prefix.length).trim().split(" ")[0].toLowerCase();
-            const args = body.trim().split(/ +/).slice(1);
+        if (body.startsWith(prefix)) {
+            const args = body.slice(prefix.length).trim().split(/ +/);
+            const commandName = args.shift().toLowerCase();
             const q = args.join(' ');
-
-            const botNumber2 = jidNormalizedUser(test.user.id);
-            const sender = mek.key.fromMe ? botNumber2 : (mek.key.participant || mek.key.remoteJid);
-            const isOwner = mek.key.fromMe || (config.OWNER_NUMBER && config.OWNER_NUMBER.includes(sender.split('@')[0]));
-            const isGroup = from.endsWith('@g.us');
-            const pushname = mek.pushName || 'User';
-            const reply = (text) => test.sendMessage(from, { text }, { quoted: mek });
-
+            
             const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
             if (cmd) {
-                if (cmd.react) test.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
                 try {
-                    await cmd.function(test, mek, sms(test, mek), {
-                        from, body, isCmd, command: commandName, args, q, isGroup, sender, pushname, botNumber2, reply, isOwner
+                    await cmd.function(conn, mek, sms(conn, mek), {
+                        from: mek.key.remoteJid, body, args, q, isGroup: mek.key.remoteJid.endsWith('@g.us'),
+                        sender: mek.key.participant || mek.key.remoteJid,
+                        reply: (text) => conn.sendMessage(mek.key.remoteJid, { text }, { quoted: mek })
                     });
-                } catch (e) { 
-                    console.error("Command Error:", e); 
-                }
+                } catch (e) { console.error(e); }
             }
         }
     });
 }
 
-// ආරම්භ කිරීම
-continuousWatch();
+// --- 6. Main Runner ---
+async function main() {
+    await syncFromMega(); // Mega එකෙන් මුලින්ම ගන්න
+    await startMultiSessionManager(); // DB එකෙන් ඊළඟට
+}
 
-app.get("/", (req, res) => { 
-    res.send(`OSHIYA-MD is running. Active Multi-Sessions: ${activeSessions.size}`); 
-});
+async function startMultiSessionManager() {
+    const dbSessions = await Session.find({ key: { $regex: /^ᴏꜱʜɪʏᴀ~/ } });
+    for (let sessionDoc of dbSessions) {
+        await processSession(sessionDoc.key, sessionDoc.value);
+    }
+}
 
-app.listen(port, () => console.log(`🚀 Server started on port ${port}`));
+// සෑම විනාඩි 5කට වරක් අලුත් Session තිබේදැයි බලයි
+setInterval(main, 300000);
+main();
+
+app.get("/", (req, res) => { res.send(`Active Sessions: ${activeSessions.size}`); });
+app.listen(port, () => console.log(`🚀 Server on port ${port}`));
